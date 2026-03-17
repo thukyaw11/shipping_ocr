@@ -1,0 +1,67 @@
+{
+    "document_info": {
+        "airline_prefix": "DG",
+        "document_status": "Issued",
+        "copy_name": "1,2,3"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG PACKAGING PTE LTD",
+            "address": "56 LOYANG WAY #05-01",
+            "account_number": "618 51122864"
+        },
+        "consignee": {
+            "name": "TAKASAGO IMPORT EXPORT THAILAND LTD",
+            "address": "15TH FLOOR, SUPALAI GRAND TOWER, 1011 RAMA 3 ROAD, CHONGNONSI, YANNAWA, BANGKOK, 10120 TH",
+            "account_number": "3230023"
+        },
+        "issuing_agent": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "iata_code": "3230023"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "706",
+                "date": "05MAR"
+            }
+        ],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NCV"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "AS ARRANGED",
+        "nature_and_quantity_of_goods": "FLAVOR & FRAGRANCE SAMPLES",
+        "total_volume_mc": 11.0
+    },
+    "handling_information": {
+        "special_notes": "PLEASE NOTIFY CONSIGNEE IMMEDIATELY UPON ARRIVAL, THANKS..."
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "618 51122864"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": 0,
+            "valuation_charge": 0,
+            "tax": 0,
+            "total_other_charges_due_agent": 0,
+            "total_other_charges_due_carrier": 0
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": "AS ARRANGED"
+        }
+    },
+    "execution": {
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE SIN APO DGF SIN"
+    }
+}

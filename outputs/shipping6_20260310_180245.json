@@ -1,0 +1,66 @@
+{
+    "document_info": {
+        "airline_prefix": "56",
+        "document_status": "Not Negotiable",
+        "copy_name": "Air Waybill 56 tovane way #05-01"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG PACKAGING PTE LTD",
+            "address": "5 SUNVIEW ROAD, SINGAPORE 627616 SG",
+            "account_number": null
+        },
+        "consignee": {
+            "name": "TAKASAGO INTERNATIONAL [SINGAPORE] PTE LTD",
+            "address": "SINGAPORE 508775",
+            "account_number": null
+        },
+        "issuing_agent": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "city": "SIN"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "flight_number": null,
+                "date": "706 OSMAR SGD"
+            }
+        ],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "declared_value_for_carriage": "AS ARRANGED",
+        "declared_value_for_customs": null
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "kg",
+        "chargeable_weight": 11.0,
+        "rate_charge": "AS ARRANGED",
+        "total_weight_charge": "AS ARRANGED",
+        "nature_and_quantity_of_goods": "FLAVOR & FRAGRANCE SAMPLES",
+        "total_volume_mc": null
+    },
+    "handling_information": {
+        "special_notes": "PLEASE NOTIFY CONSIGNEE IMMEDIATELY UPON ARRIVAL, THANKS..."
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": 7,
+            "total_other_charges": 11.0
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 0,
+            "grand_total": "AS ARRANGED"
+        }
+    },
+    "execution": {
+        "execution_date": "26",
+        "execution_place": "SINGAPORE",
+        "carrier_signature_code": null
+    }
+}

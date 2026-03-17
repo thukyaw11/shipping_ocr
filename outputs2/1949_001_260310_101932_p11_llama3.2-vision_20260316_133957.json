@@ -1,0 +1,60 @@
+{
+    "document_info": {
+        "document_status": "Commercial Invoice",
+        "copy_name": "2109012680"
+    },
+    "parties": {
+        "shipper": {
+            "name": "Takasago International (Singapore) Ple Ltd",
+            "address": "5 Sunview Road, Singapore 627616, Singapore",
+            "phone": "+65 6779-1077",
+            "fax": "+65 6777-5000",
+            "account_number": "203877"
+        },
+        "consignee": {
+            "name": "Thai Lotte",
+            "address": "20, BANGKOK, THAILAND"
+        },
+        "issuing_agent": {
+            "name": "Takasago International (Singapore) Ple Ltd"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "Thai Lotte",
+                "by_carrier": "THAI LOTTE"
+            }
+        ],
+        "destination_airport": "BANGKOK, THAILAND"
+    },
+    "declaration": {
+        "currency": "USD",
+        "declared_value_for_customs": "5.40 USD"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "kg",
+        "total_weight_charge": "5.40 USD",
+        "total_volume_mc": 0.0
+    },
+    "handling_information": {
+        "special_notes": "MADE IN SINGAPORE TRADE SAMPLE DISPATCH"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "203877"
+        ],
+        "other_charges_breakdown": {
+            "total_amount": 5.4
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 0.0
+        }
+    },
+    "execution": {
+        "execution_date": null,
+        "execution_place": null,
+        "carrier_signature_code": null
+    }
+}

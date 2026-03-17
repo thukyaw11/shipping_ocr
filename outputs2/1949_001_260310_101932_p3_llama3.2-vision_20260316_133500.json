@@ -1,0 +1,68 @@
+{
+    "document_info": {
+        "airline_prefix": "BKK",
+        "document_status": "None",
+        "copy_name": "None"
+    },
+    "parties": {
+        "shipper": {
+            "name": "SILESIA FLAVOURS THAILAND FOR OFFICIAL USE ONLY",
+            "address": "7 CHIN BEE DRIVE 18TH FLOOR SINO THAI TOWER SINGAPORE 619857 SG KHET WATTANA BANGKOK 10110 TH",
+            "phone": "6626617350",
+            "fax": "None"
+        },
+        "consignee": {
+            "name": "LTD",
+            "address": "KRONOS SATHORN TOWER ROOM 1 7 14TH BANGRAK SINGAPORE 128379 SG BANGKOK 10500 TH",
+            "phone": "6567794551",
+            "fax": "6624915465"
+        },
+        "issuing_agent": {
+            "name": "EAST ASIA PT",
+            "city": "SINGAPORE",
+            "iata_code": "None"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK SGS TESTING AND CONTROL SERVICES",
+                "by_carrier": "THE SHELL COMPANY OF THAILAND LTD",
+                "flight_number": "None",
+                "date": "None"
+            }
+        ],
+        "destination_airport": "None"
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_customs": "None"
+    },
+    "cargo_details": {
+        "dimensions": [
+            "4 KG"
+        ],
+        "weight_unit": "KG",
+        "total_weight_charge": "65K",
+        "total_volume_mc": 0.0
+    },
+    "handling_information": {
+        "special_notes": "FOR OFFICIAL USE ONLY"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "66955942545",
+            "63790298"
+        ],
+        "other_charges_breakdown": {
+            "total": 0.0
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 0.0
+        }
+    },
+    "execution": {
+        "execution_place": "None",
+        "carrier_signature_code": "None"
+    }
+}

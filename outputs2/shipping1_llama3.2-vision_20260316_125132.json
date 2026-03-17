@@ -1,0 +1,77 @@
+{
+    "document_info": {
+        "awb_number": "618 51122864",
+        "airline_prefix": "SIN",
+        "document_status": "Original",
+        "copy_name": "Original 3 - (For Shipper)"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "address": "24 SIN MING LANE #05-107 MIDVIEW CITY SINGAPORE 573970",
+            "account_number": "197200078R"
+        },
+        "consignee": {
+            "name": "HAZCHEM LOGISTICS MANAGEMENT CO., LTD",
+            "address": "628 4TH FLOOR TRIPLE I BUILDING, SOI KLAB CHOM, NONSEE ROAD, CHONGNONSEE, YANNAWA BANGKOK 10120 THAILAND",
+            "account_number": "TE026818000 FX026818999 83300002962 20250703315"
+        },
+        "issuing_agent": {
+            "name": "AIR PLANNER",
+            "city": "SIN"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "0708",
+                "date": "05MAR"
+            }
+        ],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NCV"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "kg",
+        "total_weight_charge": 65.0,
+        "total_volume_mc": 0.31
+    },
+    "handling_information": {
+        "eap": "RCAR-UC-",
+        "rcar": "EAP"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317",
+            "20250703327",
+            "7112915",
+            "20250703259",
+            "20250703246",
+            "83300002962",
+            "20250703315",
+            "3237011/0006"
+        ],
+        "other_charges_breakdown": {
+            "RAC": 100.0,
+            "XBC": 11.7,
+            "MYC": 29.25,
+            "CGC": 6.0
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 146.95,
+            "grand_total": 312.05
+        }
+    },
+    "execution": {
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE",
+        "carrier_signature_code": "SIN APO DGF SIN"
+    }
+}

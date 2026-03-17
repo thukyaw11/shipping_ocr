@@ -1,0 +1,70 @@
+{
+    "document_info": {
+        "airline_prefix": "DG",
+        "document_status": "PRODUCTION",
+        "copy_name": "1,2 and 3 of this Air Waybill are originals and have the same validity."
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG PACKAGING PTE LTD",
+            "address": "56 LOYANG WAY #05-01, TAKASAGO INTERNATIONAL [SINGAPORE] PTE LTD, SINGAPORE 508775",
+            "account_number": "SINGAPORE"
+        },
+        "consignee": {
+            "name": "TAKASAGO IMPORT EXPORT THAILAND LTD",
+            "address": "15TH FLOOR, SUPALAI GRAND TOWER, 1011 RAMA 3 ROAD, CHONGNONSI, YANNAWA, BANGKOK, 10120 TH, TE6626830119 MS IEW",
+            "account_number": ""
+        },
+        "issuing_agent": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "city": "SIN",
+            "iata_code": "3230023"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "706",
+                "date": "05MAR"
+            }
+        ],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NCV"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "",
+        "total_weight_charge": "AS ARRANGED",
+        "total_volume_mc": null
+    },
+    "handling_information": {
+        "special_notes": "PLEASE NOTIFY CONSIGNEE IMMEDIATELY UPON ARRIVAL, THANKS..."
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "SINGAPORE",
+            "618-51122864"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": null,
+            "valuation_charge": null,
+            "tax": null,
+            "total_other_charges": null
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": "AS ARRANGED",
+            "grand_total": "AS ARRANGED"
+        }
+    },
+    "execution": {
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE SIN APO DGF SIN",
+        "carrier_signature_code": "618 51122864"
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "document_type": "air waybill",
+    "date": "26 Apr 2024",
+    "total_amount": 165.1,
+    "summary": "FREIGHT PREPAID",
+    "freight_prepaid_accounts": [
+        "20250703317",
+        "20250703327",
+        "7112915",
+        "20250703259",
+        "20250703246",
+        "83300002962",
+        "20250703315"
+    ],
+    "detected_items": [
+        "FREIGHT PREPAID"
+    ]
+}

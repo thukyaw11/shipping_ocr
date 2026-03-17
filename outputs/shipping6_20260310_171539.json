@@ -1,0 +1,87 @@
+{
+    "document_info": {
+        "awb_number": "56",
+        "airline_prefix": "Tovane Way",
+        "serial_number": "20250703315",
+        "document_status": "Freight Prepaid",
+        "copy_name": "1,2 and 3 of this Air Waybill are originals and have the same validity."
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG PACKAGING PTE LTD",
+            "address": "5 Sunview Road, Singapore 627616 SG",
+            "phone": "",
+            "fax": ""
+        },
+        "consignee": {
+            "name": "TAKASAGO INTERNATIONAL [SINGAPORE] PTE LTD",
+            "address": "SINGAPORE 508775",
+            "phone": "",
+            "fax": ""
+        },
+        "issuing_agent": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "city": "SINGAPORE",
+            "iata_code": "3230023"
+        }
+    },
+    "routing_and_destination": {
+        "departure_airport": "SINGAPORE",
+        "destination_airport": "BANGKOK",
+        "routing": [
+            {
+                "to": "BANGKOK",
+                "by_carrier": "TAKASAGO IMPORT EXPORT THAILAND LTD",
+                "flight_number": "TE6626830119 MS IEW",
+                "date": "706 05"
+            }
+        ]
+    },
+    "declaration": {
+        "currency": "SGD",
+        "charge_code": "Prepaid",
+        "weight_valuation_charge": "7.0",
+        "other_charges": "AS ARRANGED",
+        "declared_value_for_carriage": "706",
+        "declared_value_for_customs": "706"
+    },
+    "cargo_details": {
+        "pieces": 1,
+        "gross_weight": 11.0,
+        "weight_unit": "AS ARRANGED",
+        "rate_class": "RCP",
+        "chargeable_weight": 11.0,
+        "rate_charge": 7.0,
+        "total_weight_charge": 7.0,
+        "nature_and_quantity_of_goods": "FLAVOR & FRAGRANCE SAMPLES",
+        "total_volume_mc": 0,
+        "dimensions": [
+            "AS ARRANGED"
+        ]
+    },
+    "handling_information": {
+        "special_notes": "PLEASE NOTIFY CONSIGNEE IMMEDIATELY UPON ARRIVAL, THANKS...",
+        "instruction": "AS ARRANGED",
+        "eap": "Fos PPD COLL PPD",
+        "rcar": "COLL"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317"
+        ],
+        "other_charges_breakdown": {
+            "total": 0
+        },
+        "total_prepaid_summary": {
+            "weight_charge": 7.0,
+            "total_other_charges_due_agent": 0,
+            "grand_total": 7.0
+        }
+    },
+    "execution": {
+        "shipper_signature_authority": "MD FAIZAL - 97496364 24HRS",
+        "execution_date": "26",
+        "execution_place": "SINGAPORE",
+        "carrier_signature_code": ""
+    }
+}

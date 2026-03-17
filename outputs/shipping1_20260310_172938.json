@@ -1,0 +1,105 @@
+{
+    "document_info": {
+        "awb_number": "51122864",
+        "airline_prefix": "SIN",
+        "serial_number": "61s",
+        "document_status": "PRODUCTION",
+        "copy_name": "618 51122864"
+    },
+    "parties": {
+        "shipper": {
+            "name": "SINGAPORE AIRLINES LIMITED",
+            "address": "25 AIRLINE ROAD, SINGAPORE",
+            "phone": "TE65437357",
+            "fax": "TEO26818000",
+            "account_number": null
+        },
+        "consignee": {
+            "name": "HAZCHEM LOGISTICS MANAGEMENT CO.,LTD",
+            "address": "628 4TH FLOOR TRIPLE I BUILDING, SOI KLAB, CHOM, NONSEE ROAD, CHONGNONSEE, YANNAWA, BANGKOK 10120 THAILAND",
+            "phone": "TEO26818000",
+            "fax": "FX026818999",
+            "account_number": null
+        },
+        "issuing_agent": {
+            "name": "AIR PLANNER",
+            "city": "SIN",
+            "iata_code": null
+        }
+    },
+    "routing_and_destination": {
+        "departure_airport": "SINGAPORE",
+        "destination_airport": "BKK",
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "0708",
+                "date": "O05"
+            }
+        ]
+    },
+    "declaration": {
+        "currency": null,
+        "charge_code": null,
+        "weight_valuation_charge": null,
+        "other_charges": null,
+        "declared_value_for_carriage": null,
+        "declared_value_for_customs": null
+    },
+    "cargo_details": {
+        "pieces": 10,
+        "gross_weight": null,
+        "weight_unit": null,
+        "rate_class": null,
+        "chargeable_weight": 2.54,
+        "rate_charge": "AS ARRANGED",
+        "total_weight_charge": 165.1,
+        "nature_and_quantity_of_goods": null,
+        "total_volume_mc": 0.31,
+        "dimensions": [
+            "31 x 31 x 55 cm",
+            "21 x 21 x 33 cm",
+            "21 x 21 x 32 cm",
+            "25 x 24 x 44 cm",
+            "39 x 39 x 37 cm",
+            "18 x 18 x 30 cm",
+            "26 x 18 x 18 cm",
+            "25 x 24 x 44 cm",
+            "20 x 20 x 36 cm",
+            "32 x 32 x 33 cm"
+        ]
+    },
+    "handling_information": {
+        "special_notes": null,
+        "instruction": null,
+        "eap": null,
+        "rcar": null
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317",
+            "20250703327",
+            "7112915",
+            "20250703259",
+            "20250703246",
+            "83300002962",
+            "20250703315"
+        ],
+        "other_charges_breakdown": {
+            "valuation_charge": 11.7,
+            "myc": 29.25
+        },
+        "total_prepaid_summary": {
+            "weight_charge": 165.1,
+            "total_other_charges_due_agent": 146.95,
+            "grand_total": "AS ARRANGED"
+        }
+    },
+    "execution": {
+        "shipper_signature_authority": null,
+        "execution_date": null,
+        "execution_place": null,
+        "carrier_signature_code": null
+    }
+}

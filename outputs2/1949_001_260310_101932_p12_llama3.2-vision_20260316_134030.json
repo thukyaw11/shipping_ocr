@@ -1,0 +1,69 @@
+{
+    "document_info": {
+        "awb_number": "DGP 20250703315",
+        "airline_prefix": "TAKASAGC"
+    },
+    "parties": {
+        "shipper": {
+            "name": "Cha Thai International Co.,Ltd.",
+            "address": "170 Moo 8, Wiangkalong, Wiangpapao, Chiangrai 57260, Thailand",
+            "phone": "+66 662-683-0119",
+            "fax": "",
+            "account_number": "70001511"
+        },
+        "consignee": {
+            "name": "Takasago Import And Export (Th) Ltd",
+            "address": "15th Fl, Supalai Grand Twr, 1011 Rama 3, Rd, Chongnonsi, Yannawa, Bangkok 10120",
+            "phone": "+66 926077720",
+            "fax": "",
+            "account_number": ""
+        },
+        "issuing_agent": {
+            "name": "Takasago International (Singapore) Pte Ltd",
+            "city": "Singapore",
+            "iata_code": "TAKASAGC"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "Takasago Import And Export (Th) Ltd",
+                "by_carrier": "Courier Service Air"
+            }
+        ],
+        "destination_airport": "Bangkok, Thailand"
+    },
+    "declaration": {
+        "currency": "USD",
+        "weight_valuation_charge": "1.80",
+        "declared_value_for_customs": "1.80"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "KG",
+        "total_weight_charge": "1.80",
+        "total_volume_mc": 0.0
+    },
+    "handling_information": {
+        "special_notes": "TRADE SAMPLE DISPATCH",
+        "instruction": "Nominal value for Customs purpose only"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "203877"
+        ],
+        "other_charges_breakdown": {
+            "amount": 0.0,
+            "currency": null,
+            "description": null
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 0.0
+        }
+    },
+    "execution": {
+        "shipper_signature_authority": "Authorized Signature Guo Xuan Cheong, DGP Inplant",
+        "execution_date": "04 MAR 2026",
+        "execution_place": "Singapore"
+    }
+}

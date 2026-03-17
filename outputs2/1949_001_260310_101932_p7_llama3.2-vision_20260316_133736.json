@@ -1,0 +1,52 @@
+{
+    "document_info": {
+        "airline_prefix": "AWB",
+        "document_status": "complete",
+        "copy_name": "SHIPPER'S DECLARATION FOR DANGEROUS GOODS"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG Packaging Pte Ltd",
+            "address": "No. 8 Temasek Blvd Suntec Tower 3, Penthouse Level, Singapore 038988",
+            "phone": "+65 6543 7064",
+            "fax": "+65 6543 7060",
+            "account_number": "20250703315"
+        },
+        "consignee": {
+            "name": "Takasago Import and Export (Thailand) Ltd",
+            "address": "15th Floor, Supalai Grand Tower, 1011 Rama 3 Road, Chongnonsi, Yannawa, Bangkok 10120, Thailand"
+        },
+        "issuing_agent": {
+            "name": "DG Packaging Pte Ltd",
+            "iata_code": "ERI PROVIDER"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_customs": "0.0"
+    },
+    "cargo_details": {
+        "dimensions": []
+    },
+    "handling_information": {
+        "special_notes": "24 HRS EMERGENCY CONTACT TEL:+65 6543 7064 / +011 65 6543 7060 (For USA), CHERLYN TOH"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703315"
+        ],
+        "other_charges_breakdown": {},
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": "0"
+        }
+    },
+    "execution": {
+        "execution_date": "4-Mar-2026",
+        "execution_place": "SINGAPORE",
+        "carrier_signature_code": "EXXX"
+    }
+}

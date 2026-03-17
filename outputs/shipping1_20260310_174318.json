@@ -1,0 +1,86 @@
+{
+    "document_info": {
+        "awb_number": "51122864",
+        "document_status": "production",
+        "copy_name": "** PRODUCTION ** 618"
+    },
+    "parties": {
+        "shipper": {
+            "name": "SINGAPORE AIRLINES LIMITED",
+            "address": "25 AIRLINE ROAD, SINGAPORE 573970",
+            "account_number": ""
+        },
+        "consignee": {
+            "name": "HAZCHEM LOGISTICS MANAGEMENT CO.,LTD",
+            "address": "628 4TH FLOOR TRIPLE I BUILDING, SOI KLAB, CHOM, NONSEE ROAD, CHONGNONSEE, YANNAWA, BANGKOK 10120 THAILAND",
+            "account_number": ""
+        },
+        "issuing_agent": {
+            "name": "AIR PLANNER",
+            "city": "SIN"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "flight_number": "SQ 0708",
+                "date": "O05"
+            },
+            {
+                "flight_number": "SQ 0708",
+                "date": "O05"
+            }
+        ],
+        "destination_airport": "BKK"
+    },
+    "declaration": {
+        "declared_value_for_carriage": "AS ARRANGED",
+        "declared_value_for_customs": "AS ARRANGED"
+    },
+    "cargo_details": {
+        "dimensions": [
+            "31 x 31 x 55 CM (1)",
+            "21 x 21 x 33 CM (1)",
+            "21 x 21 x 32 CM (1)",
+            "25 x 24 x 44 CM (2)",
+            "39 x 39 x 37 CM (1)",
+            "18 x 18 x 30 CM (4)",
+            "26 x 18 x 18 CM (1)",
+            "25 x 24 x 44 CM (1)",
+            "20 x 20 x 36 CM (1)",
+            "32 x 32 x 33 CM (1)"
+        ],
+        "total_volume_mc": 0.31
+    },
+    "handling_information": {
+        "eap": "RCAR-UC-",
+        "rcar": ""
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317",
+            "20250703327",
+            "7112915",
+            "20250703259",
+            "20250703246",
+            "83300002962",
+            "20250703315"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": 2.54,
+            "valuation_charge": 11.7,
+            "myc": 29.25,
+            "total_other_charges": 146.95,
+            "total_prepaid": 165.1
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 146.95,
+            "grand_total": "AS ARRANGED"
+        }
+    },
+    "execution": {
+        "execution_date": "O4MAR26",
+        "execution_place": "SINGAPORE SIN APO DGF SIN",
+        "carrier_signature_code": "MD FAIZAL \u2014 97496364 24HRS"
+    }
+}

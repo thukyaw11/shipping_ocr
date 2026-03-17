@@ -1,0 +1,106 @@
+{
+    "document_info": {
+        "awb_number": "51122864",
+        "airline_prefix": "SIN",
+        "serial_number": "61s",
+        "document_status": "PRODUCTION",
+        "copy_name": "618"
+    },
+    "parties": {
+        "shipper": {
+            "name": "SINGAPORE AIRLINES LIMITED",
+            "address": "25 AIRLINE ROAD, SINGAPORE",
+            "phone": "TE65437357",
+            "fax": "TEO26818000"
+        },
+        "consignee": {
+            "name": "HAZCHEM LOGISTICS MANAGEMENT CO.,LTD",
+            "address": "628 4TH FLOOR TRIPLE I BUILDING, SOI KLAB, CHOM, NONSEE ROAD, CHONGNONSEE, YANNAWA, BANGKOK 10120 THAILAND",
+            "phone": "TEO26818000",
+            "fax": "FX026818999"
+        },
+        "issuing_agent": {
+            "name": "AIR PLANNER",
+            "city": "SIN",
+            "iata_code": ""
+        }
+    },
+    "routing_and_destination": {
+        "departure_airport": "SINGAPORE",
+        "destination_airport": "BKK",
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "0708",
+                "date": "O05"
+            }
+        ]
+    },
+    "declaration": {
+        "currency": "XXX",
+        "charge_code": "PPD COLL",
+        "weight_valuation_charge": null,
+        "other_charges": null,
+        "declared_value_for_carriage": null,
+        "declared_value_for_customs": null
+    },
+    "cargo_details": {
+        "pieces": 10,
+        "gross_weight": 2.54,
+        "weight_unit": "kg",
+        "rate_class": null,
+        "chargeable_weight": 2.54,
+        "rate_charge": 165.1,
+        "total_weight_charge": 165.1,
+        "nature_and_quantity_of_goods": "CONSOLIDATED CARGO AS PER ATTACHED MANIFEST DANGEROUS GOODS IN EXCEPTED QUANTITIES",
+        "total_volume_mc": 0.31,
+        "dimensions": [
+            "31 x 31 x 55 cm",
+            "21 x 21 x 33 cm",
+            "21 x 21 x 32 cm",
+            "25 x 24 x 44 cm",
+            "39 x 39 x 37 cm",
+            "18 x 18 x 30 cm",
+            "26 x 18 x 18 cm",
+            "25 x 24 x 44 cm",
+            "20 x 20 x 36 cm",
+            "32 x 32 x 33 cm"
+        ]
+    },
+    "handling_information": {
+        "special_notes": "PLEASE NOTIFY CONSIGNEE UPON ARRIVAL, THANKS...",
+        "instruction": "Notify consignee upon arrival",
+        "eap": "Rear-Door/UC-",
+        "rcar": "UC-"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317",
+            "20250703327",
+            "7112915",
+            "20250703259",
+            "20250703246",
+            "83300002962",
+            "20250703315"
+        ],
+        "other_charges_breakdown": {
+            "prepaid": 165.1,
+            "valuation": 11.7,
+            "myc": 29.25,
+            "total_other_charges": 146.95,
+            "total_prepaid": 165.1
+        },
+        "total_prepaid_summary": {
+            "weight_charge": 165.1,
+            "total_other_charges_due_agent": 146.95,
+            "grand_total": 311.05
+        }
+    },
+    "execution": {
+        "shipper_signature_authority": "MD FAIZAL \u2014 97496364 24HRS",
+        "execution_date": "O4MAR26",
+        "execution_place": "SINGAPORE SIN APO DGF SIN",
+        "carrier_signature_code": "DG GLOBAL FORWARDING S PTE LTD"
+    }
+}

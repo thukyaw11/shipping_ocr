@@ -1,0 +1,73 @@
+{
+    "document_info": {
+        "airline_prefix": "618",
+        "document_status": "PRODUCTION",
+        "copy_name": "83300002962"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG PACKAGING PTE LTD",
+            "address": "56 LOYANG WAY #05-01 SGS TESTING & CONTROL SERVICES SINGAPORE PTE LTD SINGAPORE 508775",
+            "account_number": "3237011"
+        },
+        "consignee": {
+            "name": "THE SHELL COMPANY OF THAILAND LTD",
+            "address": "SHELL HOUSE 10 SOONTHORNKOSA RD KLONGTOEY BANGKOK 10110 THAILAND",
+            "account_number": "TE63790298"
+        },
+        "issuing_agent": {
+            "name": "DG PACKAGING PTE LTD",
+            "iata_code": "3237011"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "0706",
+                "date": "05MAR"
+            },
+            {
+                "to": "PP",
+                "by_carrier": "PP",
+                "flight_number": "0706",
+                "date": "05MAR"
+            }
+        ],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NCV"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "lb",
+        "total_weight_charge": 0.0,
+        "total_volume_mc": 0.0
+    },
+    "handling_information": {
+        "instruction": "PLEASE NOTIFY CONSIGNEE IMMEDIATELY UPON ARRIVAL, THANKS."
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "3237011"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": 0.0,
+            "valuation_charge": 0.0,
+            "tax": 0.0,
+            "total": 0.0
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 0.0,
+            "grand_total": 0.0
+        }
+    },
+    "execution": {
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE SIN APO DGF SIN"
+    }
+}

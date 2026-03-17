@@ -1,0 +1,87 @@
+{
+    "document_info": {
+        "awb_number": "56",
+        "airline_prefix": "TAKASAGO",
+        "serial_number": "20250703315",
+        "document_status": "Not Negotiable",
+        "copy_name": "1, 2, and 3 of this Air Waybill are originals and have the same validity"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG PACKAGING PTE LTD",
+            "address": "5 SUNVIEW ROAD, SINGAPORE 627616, SG",
+            "phone": null,
+            "fax": null,
+            "account_number": null
+        },
+        "consignee": {
+            "name": null,
+            "address": null,
+            "phone": null,
+            "fax": null,
+            "account_number": null
+        },
+        "issuing_agent": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "city": "SIN",
+            "iata_code": "RING"
+        }
+    },
+    "routing_and_destination": {
+        "departure_airport": "SINGAPORE",
+        "destination_airport": null,
+        "routing": [
+            {
+                "to": "BANGKOK",
+                "by_carrier": "TAKASAGO IMPORT EXPORT THAILAND LTD",
+                "flight_number": null,
+                "date": "706 05"
+            }
+        ]
+    },
+    "declaration": {
+        "currency": "SGD",
+        "charge_code": "RCP",
+        "weight_valuation_charge": "11.0",
+        "other_charges": "AS ARRANGED",
+        "declared_value_for_carriage": "AS ARRANGED",
+        "declared_value_for_customs": null
+    },
+    "cargo_details": {
+        "pieces": 1,
+        "gross_weight": null,
+        "weight_unit": null,
+        "rate_class": null,
+        "chargeable_weight": null,
+        "rate_charge": "AS ARRANGED",
+        "total_weight_charge": "AS ARRANGED",
+        "nature_and_quantity_of_goods": "FLAVOR & FRAGRANCE, SAMPLES",
+        "total_volume_mc": null,
+        "dimensions": []
+    },
+    "handling_information": {
+        "special_notes": "PLEASE NOTIFY CONSIGNEE IMMEDIATELY UPON ARRIVAL, THANKS...",
+        "instruction": null,
+        "eap": null,
+        "rcar": null
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317"
+        ],
+        "other_charges_breakdown": {
+            "total": null
+        },
+        "total_prepaid_summary": {
+            "weight_charge": "AS ARRANGED",
+            "total_other_charges_due_agent": "AS ARRANGED",
+            "grand_total": "AS ARRANGED"
+        }
+    },
+    "execution": {
+        "shipper_signature_authority": "MD FAIZAL - 97496364 24HRS",
+        "execution_date": null,
+        "execution_place": null,
+        "carrier_signature_code": null
+    }
+}

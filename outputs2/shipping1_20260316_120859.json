@@ -1,0 +1,73 @@
+{
+    "document_info": {
+        "airline_prefix": "SIN",
+        "document_status": "Not Negotiable",
+        "copy_name": "DG GLOBAL FORWARDING PTE LTD"
+    },
+    "parties": {
+        "shipper": {
+            "name": "SINGAPORE AIRLINES LIMITED",
+            "address": "airline house, 25 airline road, SINGAPORE 819829",
+            "account_number": "SINGAPORE CO.REG.NO:197200078R"
+        },
+        "consignee": {
+            "name": "HAZCHEM LOGISTICS MANAGEMENT CO., LTD",
+            "address": "628 4TH FLOOR TRIPLE I BUILDING, SOI KLAB, CHOM, NONSEE ROAD, CHONGNONSEE, YANNAWA, BANGKOK 10120 THAILAND"
+        },
+        "issuing_agent": {
+            "name": "FREIGHT PREPAID",
+            "city": "SINGAPORE"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "S00708",
+                "date": "05MAR"
+            }
+        ]
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NCV"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "Κg",
+        "rate_class": "RCP",
+        "chargeable_weight": 65.0,
+        "nature_and_quantity_of_goods": "14 items",
+        "total_volume_mc": 0.31
+    },
+    "handling_information": {
+        "eap": "RCAR-UC-",
+        "rcar": "100.00"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317",
+            "20250703327",
+            "7112915",
+            "20250703259",
+            "20250703246",
+            "83300002962",
+            "20250703315"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": 11.7,
+            "valuation_charge": 6.0,
+            "tax": 29.25,
+            "total_other_charges_due_carrier": 146.95
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 312.05
+        }
+    },
+    "execution": {
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE"
+    }
+}

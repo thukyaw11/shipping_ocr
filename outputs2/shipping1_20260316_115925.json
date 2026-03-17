@@ -1,0 +1,76 @@
+{
+    "document_info": {
+        "airline_prefix": "618",
+        "document_status": "PRODUCTION",
+        "copy_name": "51122864"
+    },
+    "parties": {
+        "shipper": {
+            "name": "SINGAPORE AIRLINES LIMITED",
+            "address": "Air Waybill airline house, 25 airline road, DG GLOBAL FORWARDING PTE LTD, SINGAPORE 819829"
+        },
+        "consignee": {
+            "name": "HAZCHEM LOGISTICS MANAGEMENT CO., LTD",
+            "address": "628 4TH FLOOR TRIPLE I BUILDING, SOI KLAB, CHOM, NONSEE ROAD, CHONGNONSEE, YANNAWA, BANGKOK 10120 THAILAND"
+        },
+        "issuing_agent": {
+            "name": "AIR PLANNER",
+            "city": "SIN",
+            "iata_code": "83300002962"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "S00708",
+                "date": "05MAR"
+            }
+        ],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NVD"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "Kg",
+        "nature_and_quantity_of_goods": "14 pieces, 65.0Kg, 2.54, 165.10, CONSOLIDATED CARGO AS PER ATTACHED MANIFEST",
+        "total_volume_mc": 0.31
+    },
+    "handling_information": {
+        "eap": "RCAR-UC-",
+        "rcar": "UC-"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317",
+            "20250703327",
+            "7112915",
+            "20250703259",
+            "20250703246",
+            "83300002962",
+            "20250703315",
+            "3237011/0006"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": 11.7,
+            "prepaid": 100.0,
+            "valuation_charge": 6.0,
+            "tax": 29.25,
+            "total_other_charges_due_agent": 312.05,
+            "total_other_charges_due_carrier": 146.95
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": 312.05,
+            "grand_total": 312.05
+        }
+    },
+    "execution": {
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE",
+        "carrier_signature_code": "SIN APO DGF SIN"
+    }
+}
