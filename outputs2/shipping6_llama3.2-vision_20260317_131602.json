@@ -1,0 +1,75 @@
+{
+    "document_info": {
+        "airline_prefix": "DG",
+        "document_status": "Issued",
+        "copy_name": "Copies 1, 2, and 3 are originals and have the same validity"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG PACKAGING PTE LTD",
+            "address": "56 LOYANG WAY #05-01, TAKASAGO INTERNATIONAL [SINGAPORE] PTE LTD, SINGAPORE 508775",
+            "account_number": "SINGAPORE"
+        },
+        "consignee": {
+            "name": "TAKASAGO IMPORT EXPORT THAILAND LTD",
+            "address": "15TH FLOOR, SUPALAI GRAND TOWER, 1011 RAMA 3 ROAD, CHONGNONSI, YANNAWA, BANGKOK, 10120 TH",
+            "account_number": "TE6626830119 MS IEW"
+        },
+        "issuing_agent": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "iata_code": "3230023"
+        }
+    },
+    "routing_and_destination": {
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "706",
+                "date": "05MAR"
+            },
+            {
+                "to": "BKK",
+                "by_carrier": "PP",
+                "flight_number": "PP",
+                "date": "05MAR"
+            }
+        ],
+        "destination_airport": "BANGKOK"
+    },
+    "declaration": {
+        "currency": "SGD",
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NCV"
+    },
+    "cargo_details": {
+        "dimensions": [],
+        "weight_unit": "kg",
+        "total_weight_charge": "AS ARRANGED",
+        "total_volume_mc": null
+    },
+    "handling_information": {
+        "special_notes": "PLEASE NOTIFY CONSIGNEE IMMEDIATELY UPON ARRIVAL, THANKS..."
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "618-51122864",
+            "3230023"
+        ],
+        "other_charges_breakdown": {
+            "weight_charge": null,
+            "valuation_charge": null,
+            "tax": null,
+            "total_other_charges_due_agent": null,
+            "total_other_charges_due_carrier": null
+        },
+        "total_prepaid_summary": {
+            "total_other_charges_due_agent": "AS ARRANGED",
+            "grand_total": "AS ARRANGED"
+        }
+    },
+    "execution": {
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE SIN APO DGF SIN"
+    }
+}

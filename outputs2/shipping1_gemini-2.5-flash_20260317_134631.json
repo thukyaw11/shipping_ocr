@@ -1,0 +1,101 @@
+{
+    "document_info": {
+        "awb_number": "618 51122864",
+        "airline_prefix": "618",
+        "serial_number": "51122864",
+        "document_status": "** PRODUCTION **",
+        "copy_name": "Original 3 - (For Shipper)"
+    },
+    "parties": {
+        "shipper": {
+            "name": "DG GLOBAL FORWARDING PTE LTD",
+            "address": "24 SIN MING LANE #05-107 MIDVIEW CITY SINGAPORE 573970",
+            "phone": "TE65437357",
+            "fax": null,
+            "account_number": null
+        },
+        "consignee": {
+            "name": "HAZCHEM LOGISTICS MANAGEMENT CO., LTD",
+            "address": "628 4TH FLOOR TRIPLE I BUILDING, SOI KLAB CHOM, NONSEE ROAD, CHONGNONSEE, YANNAWA BANGKOK 10120 THAILAND",
+            "phone": "TE026818000",
+            "fax": "FX026818999",
+            "account_number": null
+        },
+        "issuing_agent": {
+            "name": "AIR PLANNER",
+            "city": "SIN",
+            "iata_code": "3237011 /0006"
+        }
+    },
+    "routing_and_destination": {
+        "departure_airport": "SINGAPORE",
+        "destination_airport": "BANGKOK",
+        "routing": [
+            {
+                "to": "BKK",
+                "by_carrier": "SQ",
+                "flight_number": "0708",
+                "date": "05MAR"
+            }
+        ]
+    },
+    "declaration": {
+        "currency": "SGD",
+        "charge_code": null,
+        "weight_valuation_charge": "NVD",
+        "other_charges": null,
+        "declared_value_for_carriage": "NVD",
+        "declared_value_for_customs": "NCV"
+    },
+    "cargo_details": {
+        "pieces": 14,
+        "gross_weight": 65.0,
+        "weight_unit": "K",
+        "rate_class": null,
+        "chargeable_weight": 65.0,
+        "rate_charge": 2.54,
+        "total_weight_charge": 165.1,
+        "nature_and_quantity_of_goods": "CONSOLIDATED CARGO AS PER ATTACHED MANIFEST DANGEROUS GOODS IN EXCEPTED QUANTITIES, 01 PACKAGE",
+        "total_volume_mc": 0.31,
+        "dimensions": [
+            "31 X 31 X 55 CM",
+            "21 X 21 X 33 CM",
+            "21 X 21 X 32 CM",
+            "25 X 24 X 44 CM",
+            "39 X 39 X 37 CM",
+            "18 X 18 X 30 CM",
+            "26 X 18 X 18 CM",
+            "20 X 20 X 36 CM",
+            "32 X 32 X 33 CM"
+        ]
+    },
+    "handling_information": {
+        "special_notes": "10 PACKAGES DANGEROUS GOODS AS PER ASSOCIATED SHIPPER'S DECLARATION",
+        "instruction": "PLEASE NOTIFY CONSIGNEE UPON ARRIVAL, THANKS...",
+        "eap": "EAP",
+        "rcar": "RCAR-UC-"
+    },
+    "accounting_and_charges": {
+        "freight_prepaid": [
+            "20250703317",
+            "20250703327",
+            "7112915",
+            "20250703259",
+            "20250703246",
+            "83300002962",
+            "20250703315"
+        ],
+        "other_charges_breakdown": {},
+        "total_prepaid_summary": {
+            "weight_charge": 165.1,
+            "total_other_charges_due_agent": 146.95,
+            "grand_total": 312.05
+        }
+    },
+    "execution": {
+        "shipper_signature_authority": "MD FAIZAL - 97496364 24HRS DG GLOBAL FORWARDING S PTE LTD",
+        "execution_date": "04MAR26",
+        "execution_place": "SINGAPORE",
+        "carrier_signature_code": "SIN APO DGF SIN"
+    }
+}

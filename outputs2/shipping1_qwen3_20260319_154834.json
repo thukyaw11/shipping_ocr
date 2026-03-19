@@ -1,0 +1,38 @@
+{
+    "id": "chatcmpl-f8c1c1b14b634522a695a79ca12cd159",
+    "object": "chat.completion",
+    "created": 1773910098,
+    "model": "@cf/qwen/qwen3-30b-a3b-fp8",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": null,
+                "refusal": null,
+                "annotations": null,
+                "audio": null,
+                "function_call": null,
+                "tool_calls": [],
+                "reasoning_content": "\nOkay, let's tackle this query step by step. The user wants me to extract detailed logistics data from an OCR text of an Air Waybill (AWB) and return it as a JSON object with specific keys. First, I need to parse the OCR text carefully to identify each section.\n\nStarting with the document_info. The AWB number is mentioned as \"618 51122864\" and there's a note about copies 1,2,3 being originals. So document_info should include the document_number, copies, and maybe the version if there's any. The \"PRODUCTION\" tag might be part of the version, but I'll check if that's a standard field. Also, the \"Not Negotlable\" is there, which might go under document_info.\n\nNext, the parties section. The shipper's name is Singapore Airlines Limited, but there's also DG Global Forwarding Pte Ltd. Wait, the first part says \"Shipper's Name and Address | Shipper's Account Number | Singapore Airlines Limited\" followed by an address. Then under \"Issued By\" there's DG Global Forwarding Pte Ltd. So maybe the shipper is Singapore Airlines Limited, and the agent is DG Global? Or is DG the shipper? The OCR text is a bit unclear. The consignee is HAZCHEM LOGISTICS MANAGEMENT CO., LTD. Need to check the addresses and account numbers. The shipper's account number is Singapore 819829, and the consignee's account number is TE026818000 FX026818999. So parties would include shipper, consignee, and maybe the agent. The agent is mentioned as \"Issued By\" with DG Global Forwarding, so that's the agent.\n\nRouting_and_destination: The airport of departure is Singapore, and the destination is Bangkok (BKK). The routing mentions \"PPD\" and \"COLL PPD COLL\", but I need to parse the routing details. The \"To\" and \"By First Carrier\" sections have BKK, SQ, etc. The reference number might be part of the routing. Also, the currency is SGD, which is in the declaration section.\n\nDeclaration: The currency is SGD. The declared value for carriage is mentioned as \"NVD\" (No Value Declared), but there's a line about declaring a higher value. However, the actual declared value might not be present. The \"Declared Value for Customs\" is bolded but not specified. So maybe it's NVD. Also, the carrier's limitation of liability is mentioned, but that's part of the declaration notes.\n\nCargo_details: There are 14 packages, 65.0 kg. The rate class is K, and the chargeable weight is 65.0. The commodity is consolidated cargo, with details about dangerous goods. The dimensions are listed, but I need to structure them properly. The nature and quantity are \"CONSOLIDATED CARGO AS PER ATTACHED MANIFEST\" and \"DANGEROUS GOODS IN EXCEPTED QUANTITIES, 01 PACKAGE\".\n\nHandling_information: The handling information mentions 10 packages of dangerous goods, and the note to notify the consignee upon arrival. The rate class is K, and the charge details include RAC, XBC, MYC. The total charges are listed, but need to check if they fit into the accounting section.\n\nAccounting_and_charges: The freight is prepaid, so the account numbers are in the \"FREIGHT PREPAID\" section: 20250703317, 20250703327, 7112915, etc. The charges include Weight Charge, Other Charges, Valuation Charge, Tax. The total prepaid is 312.05, and total collect is 0. The currency conversion rates are mentioned, but the exact rates aren't clear. The total other charges due agent and carrier are 146.95 and 146.95? Need to check the numbers.\n\nExecution: The executed date is 04MAR26, place is Singapore. The signature is MD FAIZAL. The original copy is 3 for the shipper.\n\nNow, checking for \"AS ARRANGED\" which isn't present here. The freight_prepaid is an array of account numbers. The declaration.currency is SGD. The cargo_details should have the packages, weight, chargeable weight, rate, etc. The handling information includes the dangerous goods and the note. The accounting includes the charges and totals.\n\nI need to ensure all the keys are present and the data is correctly mapped. Also, some parts of the OCR text have errors or non-English characters, like \"医子类性 医艾克氏氏征...\" which might be noise and can be"
+            },
+            "logprobs": null,
+            "finish_reason": "length",
+            "stop_reason": null,
+            "token_ids": null
+        }
+    ],
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+        "prompt_tokens": 1793,
+        "completion_tokens": 1024,
+        "total_tokens": 2817,
+        "prompt_tokens_details": {
+            "cached_tokens": 0
+        }
+    },
+    "prompt_logprobs": null,
+    "prompt_token_ids": null,
+    "kv_transfer_params": null
+}
