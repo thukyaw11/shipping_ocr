@@ -1,30 +1,36 @@
+from src.models.schemas import OCRDocument, OCRPage, OCRLine
+from src.core.database import db 
 import asyncio
 import io
 import json
+import logging
 import os
+import re
 from datetime import datetime
+
+logging.getLogger("surya").setLevel(logging.WARNING)
+logging.getLogger("surya.recognition").setLevel(logging.WARNING)
+logging.getLogger("surya.detection").setLevel(logging.WARNING)
+logging.getLogger("transformers").setLevel(logging.ERROR)
 from typing import Literal
-
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
-
-import pypdfium2
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from src.core.config import Config
 from PIL import Image
+from src.core.database import connect_to_mongo, close_mongo_connection
+from src.api.v1.api import api_router
 
-from test_ocr import (
+from src.services.ocr_service import (
     ExtractedInfo,
     build_layout_text,
     det_predictor,
     rec_predictor,
 )
 import ollama
+
 
 # Optional Gemini; only used when provider="gemini"
 try:
@@ -33,28 +39,37 @@ try:
 except ImportError:
     _GEMINI_AVAILABLE = False
 
-app = FastAPI(title="Shipping Bill OCR", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await connect_to_mongo()
+    yield
+    await close_mongo_connection()
+
+app = FastAPI(title="Shipping Bill OCR", version="1.0.0", lifespan=lifespan)
+app.include_router(api_router, prefix="/api/v1")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=Config.ALLOW_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 MODEL_NAME = "llama3.2-vision"
+
 # MODEL_NAME = "qwen3.5:27b"
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = Config.GEMINI_API_KEY
 OUTPUT_DIR = "outputs2"
 PDF_DPI = 300
 
 # Qwen3 external API (e.g. Cloudflare Worker)
-QWEN3_API_URL = os.environ.get("QWEN3_API_URL", "https://qwen-api.soethihanaung.workers.dev")
-QWEN3_API_TOKEN = os.environ.get("QWEN3_API_TOKEN", "gCm22DVLcgR5cwZHLSMafdIyAL34Of2t")
+QWEN3_API_URL = Config.QWEN3_API_URL
+QWEN3_API_TOKEN = Config.QWEN3_API_TOKEN
 
-Provider = Literal["ollama", "gemini", "qwen3"]
+Provider = Literal["ollama", "gemini", "qwen3", "qwen3-sanitize"]
 
 SYSTEM_PROMPT = (
     "You are a specialized logistics data extractor for Air Waybills (AWB). "
@@ -67,16 +82,6 @@ SYSTEM_PROMPT = (
 )
 
 
-def pdf_to_images(data: bytes) -> list[Image.Image]:
-    """Convert every page of a PDF to a PIL Image at PDF_DPI resolution."""
-    doc = pypdfium2.PdfDocument(data)
-    scale = PDF_DPI / 72  # pdfium renders at 72 dpi by default
-    images = []
-    for i, page in enumerate(doc):
-        bitmap = page.render(scale=scale, rotation=0)
-        images.append(bitmap.to_pil())
-        print(f"[PDF] Converted page {i + 1}/{len(doc)}")
-    return images
 
 
 def _run_ocr(image: Image.Image, page_label: str) -> str:
@@ -88,7 +93,8 @@ def _run_ocr(image: Image.Image, page_label: str) -> str:
 
 
 def _run_ollama(ocr_text: str, page_label: str) -> dict:
-    print(f"[Ollama] {page_label} — sending to {MODEL_NAME}, this may take ~1-2 min...")
+    print(
+        f"[Ollama] {page_label} — sending to {MODEL_NAME}, this may take ~1-2 min...")
     response = ollama.chat(
         model=MODEL_NAME,
         messages=[
@@ -121,7 +127,8 @@ def _get_clean_schema_for_gemini():
 
 def _run_gemini(ocr_text: str, page_label: str) -> dict:
     if not _GEMINI_AVAILABLE:
-        raise RuntimeError("google-genai is not installed. pip install google-genai")
+        raise RuntimeError(
+            "google-genai is not installed. pip install google-genai")
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY environment variable is not set")
     print(f"[Gemini] {page_label} — sending to {GEMINI_MODEL}...")
@@ -152,7 +159,11 @@ def _run_qwen3(ocr_text: str, page_label: str) -> dict:
         "document_info, parties, routing_and_destination, declaration, cargo_details, handling_information, "
         "accounting_and_charges, execution. Use the same structure as standard AWB extraction. "
         "If a field contains 'AS ARRANGED', use that string. For freight_prepaid use an array of account number strings. "
-        "Put currency (e.g. THB, SGD) in declaration.currency.\n\n"
+        "Put currency (e.g. THB, SGD) in declaration.currency.\n"
+        "IMPORTANT — for ALL charge/amount fields (weight_charge, other_charges, valuation_charge, tax, totals, etc.): "
+        "extract ONLY the numeric value, never include the charge code prefix. "
+        "Examples: 'RAC:100.00' → 100.00, 'XBC:11.7' → 11.7, 'CGC:6.00' → 6.00. "
+        "If multiple charges appear in a single field (e.g. 'XBC:11.7, MYC:29.25'), sum them into one number (e.g. 40.95).\n\n"
         f"OCR text:\n{ocr_text}"
     )
     payload = {
@@ -178,15 +189,18 @@ def _run_qwen3(ocr_text: str, page_label: str) -> dict:
     )
     resp.raise_for_status()
     data = resp.json()
-    print(f"[Qwen3] {page_label} — finish_reason: {data.get('choices', [{}])[0].get('finish_reason')}")
+    print(
+        f"[Qwen3] {page_label} — finish_reason: {data.get('choices', [{}])[0].get('finish_reason')}")
     # OpenAI-style: choices[0].message.content; or direct .content / .text
     raw = None
     if "choices" in data and len(data["choices"]) > 0:
         msg = data["choices"][0].get("message", {})
         # Qwen3 thinking models put the answer in content; fall back to reasoning_content
-        raw = msg.get("content") or msg.get("reasoning_content") or data["choices"][0].get("text")
+        raw = msg.get("content") or msg.get(
+            "reasoning_content") or data["choices"][0].get("text")
     if raw is None:
-        raw = data.get("content") or data.get("response") or data.get("text") or resp.text
+        raw = data.get("content") or data.get(
+            "response") or data.get("text") or resp.text
     if isinstance(raw, dict):
         return raw
     text = raw.strip()
@@ -198,11 +212,201 @@ def _run_qwen3(ocr_text: str, page_label: str) -> dict:
     return json.loads(text)
 
 
+def _sanitize_ocr_text(ocr_text: str, doc_type: str = "awb") -> str:
+    """Call the Cloudflare Worker /sanitize endpoint to clean noisy OCR text."""
+    import requests
+    sanitize_url = QWEN3_API_URL.rstrip("/") + "/sanitize"
+    print(f"[Sanitize] Calling {sanitize_url} with doc_type={doc_type}…")
+    resp = requests.post(
+        sanitize_url,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {QWEN3_API_TOKEN}",
+        },
+        json={"doc_type": doc_type, "ocr_text": ocr_text},
+        timeout=120,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    # Accept either {"sanitized_text": ...} or {"text": ...} or {"result": ...}
+    cleaned = (
+        data.get("sanitized_text")
+        or data.get("text")
+        or data.get("result")
+        or data.get("content")
+    )
+    if not cleaned:
+        print("[Sanitize] WARNING: empty response, falling back to original text.")
+        return ocr_text
+    print(
+        f"[Sanitize] Done. Original length={len(ocr_text)}, cleaned length={len(cleaned)}")
+    return cleaned
+
+
+def _run_qwen3_sanitize(ocr_text: str, page_label: str) -> dict:
+    """Sanitize OCR text first, then run normal Qwen3 extraction on the clean result."""
+    print(f"[Qwen3-Sanitize] {page_label} — step 1: sanitizing OCR text…")
+    clean_text = _sanitize_ocr_text(ocr_text, doc_type="awb")
+    print(
+        f"[Qwen3-Sanitize] {page_label} — step 2: extracting JSON from cleaned text…")
+    return _run_qwen3(clean_text, page_label)
+
+
+def _to_float(v):
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip()
+    if not s:
+        return None
+    m = re.findall(r"-?\d+(?:\.\d+)?", s.replace(",", ""))
+    if not m:
+        return None
+    try:
+        return float(m[-1])
+    except ValueError:
+        return None
+
+
+def _normalize_qwen_to_schema(raw: dict) -> dict:
+    """Normalize qwen-style JSON into the same schema shape as Gemini output."""
+    di = raw.get("document_info", {}) or {}
+    parties = raw.get("parties", {}) or {}
+    rd = raw.get("routing_and_destination", {}) or {}
+    dec = raw.get("declaration", {}) or {}
+    cargo = raw.get("cargo_details", {}) or {}
+    handling = raw.get("handling_information", {}) or {}
+    acc = raw.get("accounting_and_charges", {}) or {}
+    exe = raw.get("execution", {}) or {}
+
+    doc_num = di.get("document_number") or di.get("awb_number") or ""
+    digits = "".join(re.findall(r"\d", str(doc_num)))
+    airline_prefix = di.get("airline_prefix") or (
+        digits[:3] if len(digits) >= 3 else None)
+    serial_number = di.get("serial_number") or (
+        digits[3:] if len(digits) > 3 else None)
+    awb_number = di.get("awb_number") or (digits if digits else None)
+
+    issuing = parties.get("issuing_agent") or parties.get("agent") or {}
+    routing_items = rd.get("routing")
+    if not isinstance(routing_items, list):
+        routing_items = []
+        fd = rd.get("flight_date")
+        if fd:
+            # e.g. "S00708 05MAR" -> carrier "SQ"/"S0" is ambiguous; keep as flight_number+date best effort
+            parts = str(fd).split()
+            routing_items = [{
+                "to": rd.get("airport_of_destination") or rd.get("destination_airport"),
+                "by_carrier": None,
+                "flight_number": parts[0] if parts else None,
+                "date": parts[1] if len(parts) > 1 else None,
+            }]
+
+    charges = acc.get("charges", {}) if isinstance(
+        acc.get("charges"), dict) else {}
+    prepaid_accounts = (
+        acc.get("freight_prepaid")
+        or acc.get("freight_prepaid_account_numbers")
+        or []
+    )
+    if not isinstance(prepaid_accounts, list):
+        prepaid_accounts = [str(prepaid_accounts)]
+
+    normalized = {
+        "document_info": {
+            "awb_number": awb_number,
+            "airline_prefix": airline_prefix,
+            "serial_number": serial_number,
+            "document_status": di.get("document_status") or di.get("status"),
+            "copy_name": di.get("copy_name") or di.get("copies"),
+        },
+        "parties": {
+            "shipper": {
+                "name": (parties.get("shipper") or {}).get("name"),
+                "address": (parties.get("shipper") or {}).get("address"),
+                "phone": (parties.get("shipper") or {}).get("phone"),
+                "fax": (parties.get("shipper") or {}).get("fax"),
+                "account_number": (parties.get("shipper") or {}).get("account_number"),
+            },
+            "consignee": {
+                "name": (parties.get("consignee") or {}).get("name"),
+                "address": (parties.get("consignee") or {}).get("address"),
+                "phone": (parties.get("consignee") or {}).get("phone"),
+                "fax": (parties.get("consignee") or {}).get("fax"),
+                "account_number": (parties.get("consignee") or {}).get("account_number"),
+            },
+            "issuing_agent": {
+                "name": issuing.get("name"),
+                "city": issuing.get("city"),
+                "iata_code": issuing.get("iata_code"),
+            },
+        },
+        "routing_and_destination": {
+            "departure_airport": rd.get("departure_airport") or rd.get("airport_of_departure"),
+            "destination_airport": rd.get("destination_airport") or rd.get("airport_of_destination"),
+            "routing": routing_items if isinstance(routing_items, list) else [],
+        },
+        "declaration": {
+            "currency": dec.get("currency") or rd.get("currency"),
+            "charge_code": dec.get("charge_code"),
+            "weight_valuation_charge": dec.get("weight_valuation_charge"),
+            "other_charges": dec.get("other_charges"),
+            "declared_value_for_carriage": dec.get("declared_value_for_carriage") or rd.get("declared_value_for_carriage"),
+            "declared_value_for_customs": dec.get("declared_value_for_customs") or rd.get("declared_value_for_customs"),
+        },
+        "cargo_details": {
+            "pieces": int(_to_float(cargo.get("pieces") or cargo.get("number_of_pieces")) or 0) or None,
+            "gross_weight": _to_float(cargo.get("gross_weight") or cargo.get("gross_weight_kg")),
+            "weight_unit": cargo.get("weight_unit"),
+            "rate_class": cargo.get("rate_class"),
+            "chargeable_weight": _to_float(cargo.get("chargeable_weight") or cargo.get("chargeable_weight_kg")),
+            "rate_charge": _to_float(cargo.get("rate_charge") or cargo.get("rate")),
+            "total_weight_charge": _to_float(cargo.get("total_weight_charge")),
+            "nature_and_quantity_of_goods": cargo.get("nature_and_quantity_of_goods") or cargo.get("commodity"),
+            "total_volume_mc": _to_float(cargo.get("total_volume_mc") or cargo.get("total_volume_m3")),
+            "dimensions": cargo.get("dimensions") if isinstance(cargo.get("dimensions"), list) else [],
+        },
+        "handling_information": {
+            "special_notes": handling.get("special_notes") or handling.get("handling_instructions"),
+            "instruction": handling.get("instruction"),
+            "eap": handling.get("eap"),
+            "rcar": handling.get("rcar") or handling.get("special_instructions"),
+        },
+        "accounting_and_charges": {
+            "freight_prepaid": [str(x) for x in prepaid_accounts if x is not None],
+            "other_charges_breakdown": {
+                "weight_charge": _to_float(charges.get("weight_charge") or acc.get("weight_charge")),
+                "other_charges": _to_float(charges.get("other_charges") or acc.get("other_charges")),
+                "valuation_charge": _to_float(charges.get("valuation_charge") or acc.get("valuation_charge")),
+                "tax": _to_float(charges.get("tax") or acc.get("tax")),
+                "total_other_charges_due_agent": _to_float(charges.get("total_other_charges_due_agent") or acc.get("total_other_charges_due_agent")),
+                "total_other_charges_due_carrier": _to_float(charges.get("total_other_charges_due_carrier") or acc.get("total_other_charges_due_carrier")),
+            },
+            "total_prepaid_summary": {
+                "weight_charge": _to_float(charges.get("weight_charge") or acc.get("weight_charge")),
+                "total_other_charges_due_agent": _to_float(charges.get("total_other_charges_due_agent") or acc.get("total_other_charges_due_agent")),
+                "grand_total": _to_float(acc.get("total_prepaid") or acc.get("grand_total")),
+            },
+        },
+        "execution": {
+            "shipper_signature_authority": exe.get("shipper_signature_authority") or exe.get("signature"),
+            "execution_date": exe.get("execution_date") or exe.get("date"),
+            "execution_place": exe.get("execution_place") or exe.get("place"),
+            "carrier_signature_code": exe.get("carrier_signature_code") or exe.get("issuer_signature") or exe.get("carrier"),
+        },
+    }
+    # Ensure strict, consistent output shape like Gemini route
+    return ExtractedInfo.model_validate(normalized).model_dump()
+
+
 def _run_extraction(ocr_text: str, page_label: str, provider: Provider) -> dict:
     if provider == "gemini":
         return _run_gemini(ocr_text, page_label)
     if provider == "qwen3":
-        return _run_qwen3(ocr_text, page_label)
+        return _normalize_qwen_to_schema(_run_qwen3(ocr_text, page_label))
+    if provider == "qwen3-sanitize":
+        return _normalize_qwen_to_schema(_run_qwen3_sanitize(ocr_text, page_label))
     return _run_ollama(ocr_text, page_label)
 
 
@@ -217,9 +421,15 @@ def _process_page(image: Image.Image, base_name: str, page_label: str, provider:
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_label = GEMINI_MODEL if provider == "gemini" else ("qwen3" if provider == "qwen3" else MODEL_NAME)
+    model_label = (
+        GEMINI_MODEL if provider == "gemini"
+        else "qwen3-sanitize" if provider == "qwen3-sanitize"
+        else "qwen3" if provider == "qwen3"
+        else MODEL_NAME
+    )
     safe_model = model_label.replace(":", "-")
-    output_path = os.path.join(OUTPUT_DIR, f"{base_name}_{safe_model}_{timestamp}.json")
+    output_path = os.path.join(
+        OUTPUT_DIR, f"{base_name}_{safe_model}_{timestamp}.json")
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(json_content, f, indent=4, ensure_ascii=False)
@@ -230,39 +440,46 @@ def _process_page(image: Image.Image, base_name: str, page_label: str, provider:
 @app.post("/ocr", response_class=JSONResponse)
 async def ocr_file(
     file: UploadFile = File(...),
-    provider: Provider = Query("ollama", description="LLM: 'ollama' | 'gemini' | 'qwen3'"),
+    provider: Provider = Query(
+        "ollama", description="LLM: 'ollama' | 'gemini' | 'qwen3' | 'qwen3-sanitize'"),
 ):
     """
     Upload a shipping bill image (PNG/JPG) or PDF.
     - Image  → single result
     - PDF    → one result per page, processed sequentially
-    - provider: ollama (default), gemini (set GEMINI_API_KEY), or qwen3 (set QWEN3_API_URL, QWEN3_API_TOKEN).
+    - provider: ollama (default), gemini (set GEMINI_API_KEY), qwen3 or qwen3-sanitize (set QWEN3_API_URL, QWEN3_API_TOKEN).
     Each page result is saved to outputs2/{filename}_{model}_{timestamp}.json.
     """
     if provider == "gemini":
         if not GEMINI_API_KEY:
-            raise HTTPException(status_code=400, detail="GEMINI_API_KEY not set. Use provider=ollama or set the env var.")
+            raise HTTPException(
+                status_code=400, detail="GEMINI_API_KEY not set. Use provider=ollama or set the env var.")
         if not _GEMINI_AVAILABLE:
-            raise HTTPException(status_code=503, detail="Gemini support not installed. pip install google-genai")
-    if provider == "qwen3":
+            raise HTTPException(
+                status_code=503, detail="Gemini support not installed. pip install google-genai")
+    if provider in ("qwen3", "qwen3-sanitize"):
         if not QWEN3_API_TOKEN:
-            raise HTTPException(status_code=400, detail="QWEN3_API_TOKEN not set. Set env var or use another provider.")
+            raise HTTPException(
+                status_code=400, detail="QWEN3_API_TOKEN not set. Set env var or use another provider.")
     contents = await file.read()
     base_name = os.path.splitext(file.filename)[0]
     is_pdf = file.content_type == "application/pdf" or file.filename.lower().endswith(".pdf")
 
     if is_pdf:
-        print(f"[PDF] Converting {file.filename} pages to images at {PDF_DPI} dpi...")
+        print(
+            f"[PDF] Converting {file.filename} pages to images at {PDF_DPI} dpi...")
         images = await run_in_threadpool(pdf_to_images, contents)
         print(f"[PDF] {len(images)} page(s) ready.")
     elif file.content_type.startswith("image/"):
         images = [Image.open(io.BytesIO(contents)).convert("RGB")]
     else:
-        raise HTTPException(status_code=400, detail="Upload must be an image or PDF.")
+        raise HTTPException(
+            status_code=400, detail="Upload must be an image or PDF.")
 
     results = []
     for i, image in enumerate(images):
-        page_label = f"page {i + 1}/{len(images)}" if len(images) > 1 else file.filename
+        page_label = f"page {i + 1}/{len(images)}" if len(
+            images) > 1 else file.filename
         page_base = f"{base_name}_p{i + 1}" if len(images) > 1 else base_name
 
         result = await run_in_threadpool(_process_page, image, page_base, page_label, provider)
@@ -270,7 +487,8 @@ async def ocr_file(
             results.append({"page": i + 1, **result})
 
     if not results:
-        raise HTTPException(status_code=422, detail="No text detected in any page.")
+        raise HTTPException(
+            status_code=422, detail="No text detected in any page.")
 
     # Single image → return result directly; PDF → return list under "pages"
     if len(images) == 1:
@@ -310,8 +528,29 @@ async def _stream_ocr_generator(filename: str, base_name: str, images: list, pro
         })
 
         # Run OCR in thread (keepalives every 10s)
-        task = asyncio.create_task(run_in_threadpool(_run_ocr, image, page_label))
+        task = asyncio.create_task(
+            run_in_threadpool(_run_ocr, image, page_label))
         ocr_text = None
+        # 10% — OCR done
+        yield _sse_message({
+            "type": "progress",
+            "page": page_num,
+            "total_pages": total,
+            "message": f"Extracting data from {page_label}…",
+            "page_percent": 10,
+            "state": f"Extracting data (page {page_num})…" if total > 1 else "Extracting data…",
+        })
+
+        # 20% — OCR done
+        yield _sse_message({
+            "type": "progress",
+            "page": page_num,
+            "total_pages": total,
+            "message": f"Extracting data from {page_label}…",
+            "page_percent": 20,
+            "state": f"Extracting data (page {page_num})…" if total > 1 else "Extracting data…",
+        })
+
         try:
             while not task.done():
                 try:
@@ -353,7 +592,8 @@ async def _stream_ocr_generator(filename: str, base_name: str, images: list, pro
         })
 
         # Run LLM extraction in thread (keepalives every 10s)
-        task = asyncio.create_task(run_in_threadpool(_run_extraction, ocr_text, page_label, provider))
+        task = asyncio.create_task(run_in_threadpool(
+            _run_extraction, ocr_text, page_label, provider))
         json_content = None
         try:
             while not task.done():
@@ -385,9 +625,15 @@ async def _stream_ocr_generator(filename: str, base_name: str, images: list, pro
 
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        model_label = GEMINI_MODEL if provider == "gemini" else ("qwen3" if provider == "qwen3" else MODEL_NAME)
+        model_label = (
+            GEMINI_MODEL if provider == "gemini"
+            else "qwen3-sanitize" if provider == "qwen3-sanitize"
+            else "qwen3" if provider == "qwen3"
+            else MODEL_NAME
+        )
         safe_model = model_label.replace(":", "-")
-        output_path = os.path.join(OUTPUT_DIR, f"{page_base}_{safe_model}_{timestamp}.json")
+        output_path = os.path.join(
+            OUTPUT_DIR, f"{page_base}_{safe_model}_{timestamp}.json")
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(json_content, f, indent=4, ensure_ascii=False)
 
@@ -412,12 +658,13 @@ async def _stream_ocr_generator(filename: str, base_name: str, images: list, pro
 @app.post("/ocr/stream")
 async def ocr_file_stream(
     file: UploadFile = File(...),
-    provider: Provider = Query("ollama", description="LLM: 'ollama' | 'gemini' | 'qwen3'"),
+    provider: Provider = Query(
+        "ollama", description="LLM: 'ollama' | 'gemini' | 'qwen3' | 'qwen3-sanitize'"),
 ):
     """
     Upload image or PDF; response is a stream of Server-Sent Events.
     Frontend receives one event per finished page instead of waiting for all.
-    provider: ollama (default), gemini (GEMINI_API_KEY), or qwen3 (QWEN3_API_URL, QWEN3_API_TOKEN).
+    provider: ollama (default), gemini (GEMINI_API_KEY), qwen3 or qwen3-sanitize (QWEN3_API_URL, QWEN3_API_TOKEN).
 
     Events include "state"; progress/page include "page_percent" (0 → 30 → 60 → 100 per page):
       - start:   state="Starting…"
@@ -429,31 +676,40 @@ async def ocr_file_stream(
     """
     if provider == "gemini":
         if not GEMINI_API_KEY:
-            raise HTTPException(status_code=400, detail="GEMINI_API_KEY not set. Use provider=ollama or set the env var.")
+            raise HTTPException(
+                status_code=400, detail="GEMINI_API_KEY not set. Use provider=ollama or set the env var.")
         if not _GEMINI_AVAILABLE:
-            raise HTTPException(status_code=503, detail="Gemini support not installed. pip install google-genai")
-    if provider == "qwen3":
+            raise HTTPException(
+                status_code=503, detail="Gemini support not installed. pip install google-genai")
+    if provider in ("qwen3", "qwen3-sanitize"):
         if not QWEN3_API_TOKEN:
-            raise HTTPException(status_code=400, detail="QWEN3_API_TOKEN not set. Set env var or use another provider.")
+            raise HTTPException(
+                status_code=400, detail="QWEN3_API_TOKEN not set. Set env var or use another provider.")
     if not file.content_type and not file.filename:
-        raise HTTPException(status_code=400, detail="Upload must be an image or PDF.")
+        raise HTTPException(
+            status_code=400, detail="Upload must be an image or PDF.")
 
     contents = await file.read()
     base_name = os.path.splitext(file.filename)[0]
-    is_pdf = file.content_type == "application/pdf" or (file.filename or "").lower().endswith(".pdf")
+    is_pdf = file.content_type == "application/pdf" or (
+        file.filename or "").lower().endswith(".pdf")
 
     if is_pdf:
         images = await run_in_threadpool(pdf_to_images, contents)
     elif (file.content_type or "").startswith("image/"):
         images = [Image.open(io.BytesIO(contents)).convert("RGB")]
     else:
-        raise HTTPException(status_code=400, detail="Upload must be an image or PDF.")
+        raise HTTPException(
+            status_code=400, detail="Upload must be an image or PDF.")
 
     return StreamingResponse(
-        _stream_ocr_generator(file.filename or "upload", base_name, images, provider),
+        _stream_ocr_generator(file.filename or "upload",
+                              base_name, images, provider),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
 
 
 if __name__ == "__main__":
