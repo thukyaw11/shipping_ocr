@@ -11,4 +11,23 @@ class Config:
     ALLOW_ORIGINS = [origin.strip() for origin in origin_raw.split(",")]
     MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
     DATABASE_NAME = os.getenv("DATABASE_NAME", "shipping_ocr")
-    
+    R2_ACCESS_KEY_ID: str = os.getenv("R2_ACCESS_KEY_ID")
+    R2_SECRET_ACCESS_KEY: str = os.getenv("R2_SECRET_ACCESS_KEY")
+    R2_ENDPOINT_URL: str = os.getenv("R2_ENDPOINT_URL")
+    R2_BUCKET_NAME: str = os.getenv("R2_BUCKET_NAME")
+
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(
+        os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
+    )
+
+    AUTH_DEV_USERNAME: str = os.getenv("AUTH_DEV_USERNAME", "")
+    AUTH_DEV_PASSWORD: str = os.getenv("AUTH_DEV_PASSWORD", "")
+
+    AUTH0_DOMAIN: str = os.getenv("AUTH0_DOMAIN", "")
+    AUTH0_AUDIENCE: str = os.getenv("AUTH0_AUDIENCE", "")
+    AUTH0_PUBLIC_KEY: str = os.getenv("AUTH0_PUBLIC_KEY", "")
+
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+
