@@ -13,6 +13,7 @@ async def connect_to_mongo():
     await db.db["users"].create_index("email", unique=True)
     await db.db["users"].create_index("google_sub", unique=True, sparse=True)
     await db.db["ocr_results"].create_index([("user_id", 1), ("edited_at", -1)])
+    await db.db["highlights"].create_index([("user_id", 1), ("project_id", 1)], unique=True)
     print("Connected to MongoDB")
 
 async def close_mongo_connection():
