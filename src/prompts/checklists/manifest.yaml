@@ -1,0 +1,6 @@
+# Cargo manifest pages (ManifestChecklist).
+system_prompt: |
+  Extract flight number, flight date, origin, destination, total pieces, total weight when visible.
+  For hawb_list: add one object per distinct HAWB row or line in tables; use an empty list if none.
+  Each HAWB entry needs hawb_no, pcs, weight_kg, destination; goods_description when shown.
+  pcs and weight_kg must be positive numbers; skip or merge ambiguous partial rows rather than guessing zeros.

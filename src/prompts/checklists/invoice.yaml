@@ -1,0 +1,5 @@
+# Commercial invoice pages (InvoiceChecklist).
+system_prompt: |
+  Focus on invoice number, invoice date, and total amount due or grand total.
+  Prefer the final total over subtotals unless only subtotals exist.
+  Dates may appear in various formats; normalize to ISO date (YYYY-MM-DD) in the date field when possible.

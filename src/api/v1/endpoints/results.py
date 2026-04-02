@@ -3,8 +3,8 @@ from typing import List, Optional
 from uuid import uuid4
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, Header, Query
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Body, Depends, HTTPException, Header, Path, Query
+from pydantic import BaseModel, Field, field_validator
 
 from src.core.auth import verify_jwt
 from src.core.database import db
@@ -12,6 +12,20 @@ from src.core.response_wrapper import ApiResponse
 from src.utils import to_local_time
 
 router = APIRouter()
+
+
+class PageTypeUpdateBody(BaseModel):
+    """Arbitrary label for the page; no fixed vocabulary."""
+
+    page_type: str = Field(..., max_length=512)
+
+    @field_validator('page_type')
+    @classmethod
+    def strip_non_empty(cls, v: str) -> str:
+        s = (v or '').strip()
+        if not s:
+            raise ValueError('page_type cannot be empty')
+        return s
 
 
 class Highlight(BaseModel):
@@ -74,6 +88,14 @@ def _enrich_confidence_fields(doc: dict) -> dict:
         doc["overall_confidence"] = round(total_sum / total_count, 6)
 
     return doc
+
+
+def _attach_checklists(serialized_doc: dict) -> dict:
+    pages = serialized_doc.get('data') or []
+    serialized_doc['checklists'] = [
+        p.get('checklist') if isinstance(p, dict) else None for p in pages
+    ]
+    return serialized_doc
 
 
 async def _assert_project_owned_by_user(project_id: str, user_id: str) -> None:
@@ -218,6 +240,7 @@ async def get_history_detail(
 
     serialized_doc = _serialize(doc)
     serialized_doc = _enrich_confidence_fields(serialized_doc)
+    _attach_checklists(serialized_doc)
 
     user_tz = x_timezone or "UTC"
 
@@ -230,3 +253,69 @@ async def get_history_detail(
         serialized_doc["edited_at"] = dt_edited.isoformat()
 
     return ApiResponse.ok(data=serialized_doc)
+
+
+@router.patch('/{doc_id}/pages/{paged_idx}/page-type', response_model=ApiResponse[dict])
+async def update_page_type(
+    doc_id: str,
+    paged_idx: int = Path(
+        ...,
+        ge=1,
+        description='1-based page index (same as data[].paged_idx).',
+    ),
+    payload: dict = Depends(verify_jwt),
+    x_timezone: Optional[str] = Header(None),
+    body: PageTypeUpdateBody = Body(...),
+):
+    """
+    Set page_type for one page to any non-empty string (replaces previous value).
+    """
+    user_id = payload.get('sub')
+    if not user_id:
+        raise HTTPException(status_code=401, detail='Invalid token: missing subject')
+
+    try:
+        oid = ObjectId(doc_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail='Invalid document ID format.')
+
+    doc = await db.db['ocr_results'].find_one({'_id': oid, 'user_id': user_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail='Document not found.')
+
+    pages = doc.get('data') or []
+    idx = next(
+        (i for i, p in enumerate(pages) if p.get('paged_idx') == paged_idx),
+        None,
+    )
+    if idx is None:
+        raise HTTPException(status_code=404, detail='Page not found.')
+
+    new_type = body.page_type
+    await db.db['ocr_results'].update_one(
+        {'_id': oid, 'user_id': user_id},
+        {
+            '$set': {
+                f'data.{idx}.page_type': new_type,
+                'edited_at': datetime.utcnow(),
+            },
+        },
+    )
+
+    updated = await db.db['ocr_results'].find_one({'_id': oid, 'user_id': user_id})
+    if not updated:
+        raise HTTPException(status_code=404, detail='Document not found.')
+
+    serialized_doc = _serialize(updated)
+    serialized_doc = _enrich_confidence_fields(serialized_doc)
+    _attach_checklists(serialized_doc)
+
+    user_tz = x_timezone or 'UTC'
+    dt_created = to_local_time(updated.get('created_at'), user_tz)
+    dt_edited = to_local_time(updated.get('edited_at'), user_tz)
+    if dt_created:
+        serialized_doc['created_at'] = dt_created.isoformat()
+    if dt_edited:
+        serialized_doc['edited_at'] = dt_edited.isoformat()
+
+    return ApiResponse.ok(data=serialized_doc, message='Page type updated')

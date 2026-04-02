@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from pydantic import BaseModel, ConfigDict, Field, computed_field
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 
@@ -16,9 +16,12 @@ class OCRPage(BaseModel):
     page_type: Optional[str] = None
     image_bbox: List[float]
     text_lines: List[OCRLine]
+    checklist: Optional[Dict[str, Any]] = None
 
 
 class OCRDocument(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     user_id: Optional[str] = None
     filename: str
     total_pages: int
@@ -32,5 +35,7 @@ class OCRDocument(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        populate_by_name = True
+    @computed_field
+    @property
+    def checklists(self) -> List[Optional[Dict[str, Any]]]:
+        return [p.checklist for p in self.data]

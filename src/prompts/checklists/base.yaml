@@ -1,0 +1,13 @@
+# Shared rules for all checklist extractions (prepended before type-specific prompt).
+system_prompt: |
+  You extract structured checklist fields from logistics document OCR text.
+  Use only information that appears in the OCR; use null for unknown or missing values.
+  Do not invent values. Parse numbers from the text when clearly present.
+  Tolerate OCR noise: broken columns, pipe characters between cells, and line wraps.
+
+# Default user message shape; override per type with user_prompt_template if needed.
+user_prompt_template: |
+  Page type label: {page_type}
+
+  OCR text:
+  {ocr_text}

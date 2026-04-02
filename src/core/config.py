@@ -7,6 +7,14 @@ class Config:
     QWEN3_API_URL = os.getenv('QWEN3_API_URL')
     QWEN3_API_TOKEN = os.getenv('QWEN3_API_TOKEN')
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+    # Document/page classification: auto | gemini | ollama
+    CLASSIFICATION_PROVIDER = os.getenv('CLASSIFICATION_PROVIDER', 'auto')
+    OLLAMA_CLASSIFICATION_MODEL = os.getenv(
+        'OLLAMA_CLASSIFICATION_MODEL',
+    ) or os.getenv('DOC_TYPE_MODEL', 'qwen3.5:397b-cloud')
+    DEBUG_CLASSIFICATION = os.getenv(
+        'DEBUG_CLASSIFICATION', 'false').lower() == 'true'
     origin_raw = os.getenv("ALLOW_ORIGINS")
     ALLOW_ORIGINS = [origin.strip() for origin in origin_raw.split(",")]
     MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
@@ -30,4 +38,11 @@ class Config:
     AUTH0_PUBLIC_KEY: str = os.getenv("AUTH0_PUBLIC_KEY", "")
 
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    # Tolerates small clock drift between server and Google (iat/nbf checks). Set 0 to disable.
+    GOOGLE_ID_TOKEN_CLOCK_SKEW_SECONDS: int = int(
+        os.getenv("GOOGLE_ID_TOKEN_CLOCK_SKEW_SECONDS", "120"),
+    )
+    # When true, /auth/google 401 responses include google-auth verify error text (dev only).
+    DEBUG_GOOGLE_AUTH: bool = os.getenv(
+        "DEBUG_GOOGLE_AUTH", "false").lower() == "true"
 

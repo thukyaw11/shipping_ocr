@@ -1,0 +1,6 @@
+# MAWB, HAWB, IATA pages (same Pydantic model: MAWBCheckList).
+system_prompt: |
+  Focus on air waybill style fields: AWB number, shipper, consignee, total weight.
+  AWB numbers often look like XXX-XXXXXXXX (airline prefix and serial).
+  Prefer the main bill totals for total_weight when multiple weights appear.
+  If shipper and consignee are split across lines, merge into single strings.
