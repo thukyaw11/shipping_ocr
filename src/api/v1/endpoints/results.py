@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import List, Optional
 from uuid import uuid4
@@ -9,7 +10,12 @@ from pydantic import BaseModel, Field, field_validator
 from src.core.auth import verify_jwt
 from src.core.database import db
 from src.core.response_wrapper import ApiResponse
+from src.models.schemas import OCRPage
+from src.services.cross_validation import run_cross_validation
+from src.services.page_connections import build_page_connections
 from src.utils import to_local_time
+
+logger = logging.getLogger('shipping_bill_ocr')
 
 router = APIRouter()
 
@@ -95,6 +101,37 @@ def _attach_checklists(serialized_doc: dict) -> dict:
     serialized_doc['checklists'] = [
         p.get('checklist') if isinstance(p, dict) else None for p in pages
     ]
+    return serialized_doc
+
+
+def _attach_connections(serialized_doc: dict) -> dict:
+    pages_raw = serialized_doc.get('data') or []
+    try:
+        pages = [OCRPage(**p) for p in pages_raw if isinstance(p, dict)]
+        results = build_page_connections(pages)
+        serialized_doc['connections'] = [
+            r.model_dump(by_alias=True) for r in results
+        ] or None
+    except Exception:
+        logger.exception('Page connection building failed')
+        serialized_doc['connections'] = None
+    return serialized_doc
+
+
+def _attach_cross_validation(serialized_doc: dict) -> dict:
+    """
+    Reconstruct OCRPage objects from the raw MongoDB dict, run the cross-
+    validation engine, and attach the results under "cross_validation_results".
+    Always produces the key (empty list on error) so the response shape is stable.
+    """
+    pages_raw = serialized_doc.get('data') or []
+    try:
+        pages = [OCRPage(**p) for p in pages_raw if isinstance(p, dict)]
+        results = run_cross_validation(pages)
+        serialized_doc['cross_validation_results'] = [r.model_dump() for r in results]
+    except Exception:
+        logger.exception('Cross-validation failed while building project detail')
+        serialized_doc['cross_validation_results'] = []
     return serialized_doc
 
 
@@ -241,6 +278,8 @@ async def get_history_detail(
     serialized_doc = _serialize(doc)
     serialized_doc = _enrich_confidence_fields(serialized_doc)
     _attach_checklists(serialized_doc)
+    _attach_connections(serialized_doc)
+    _attach_cross_validation(serialized_doc)
 
     user_tz = x_timezone or "UTC"
 
@@ -309,6 +348,8 @@ async def update_page_type(
     serialized_doc = _serialize(updated)
     serialized_doc = _enrich_confidence_fields(serialized_doc)
     _attach_checklists(serialized_doc)
+    _attach_connections(serialized_doc)
+    _attach_cross_validation(serialized_doc)
 
     user_tz = x_timezone or 'UTC'
     dt_created = to_local_time(updated.get('created_at'), user_tz)

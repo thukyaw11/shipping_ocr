@@ -13,6 +13,7 @@ from src.models.schemas import OCRDocument
 from src.services.ai.factory import get_classification_text_provider
 from src.services.ai.gemini_provider import build_default_gemini_provider
 from src.services.checklist_extraction import extract_checklist_sync
+from src.services.cross_validation import run_cross_validation
 from src.services.document_classification import DocumentTypeClassifier
 from src.services.s3_service import s3_service
 from src.services.surya_ocr_pipeline import (
@@ -78,6 +79,8 @@ async def ocr_file_surya(
     else:
         print('[ocr] skip checklists (Gemini not configured)')
 
+    cv_results = run_cross_validation(pipeline_result.pages)
+
     user_id = payload.get('sub')
     if not user_id:
         raise HTTPException(
@@ -96,13 +99,18 @@ async def ocr_file_surya(
         created_at=datetime.utcnow(),
         url=file_url,
         type=file.content_type,
+        cross_validation_results=cv_results,
     )
 
     try:
-        insert_payload = ocr_doc.model_dump(exclude_computed_fields=True)
+        insert_payload = ocr_doc.model_dump(
+            exclude_computed_fields=True,
+            exclude={'cross_validation_results'},
+        )
     except TypeError:
         insert_payload = ocr_doc.model_dump()
         insert_payload.pop('checklists', None)
+        insert_payload.pop('cross_validation_results', None)
     await db.db['ocr_results'].insert_one(insert_payload)
 
     print(f'[ocr] insert done in {time.monotonic() - started_at:.2f}s')

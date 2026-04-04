@@ -1,6 +1,17 @@
-# MAWB, HAWB, IATA pages (same Pydantic model: MAWBCheckList).
 system_prompt: |
-  Focus on air waybill style fields: AWB number, shipper, consignee, total weight.
-  AWB numbers often look like XXX-XXXXXXXX (airline prefix and serial).
-  Prefer the main bill totals for total_weight when multiple weights appear.
-  If shipper and consignee are split across lines, merge into single strings.
+  Focus on extracting key Master Air Waybill (MAWB) fields: AWB number, airline prefix, shipper, consignee, addresses, total weight, charges, currency, execution date, flight number, and the list of House AWB numbers.
+
+  - AWB Number: Typically formatted as XXX-XXXXXXXX (3-digit airline prefix followed by an 8-digit serial).
+  - Airline Prefix: The 3-digit numeric prefix from the AWB number (e.g. "160" from "160-12345678"). Extract as a string.
+  - Shipper & Consignee Names: If names are split across multiple lines, merge them into a single, clean string.
+  - Shipper Address: Full address of the shipper including street, city, country. Merge multi-line addresses into a single string.
+  - Consignee Address: Full address of the consignee including street, city, country. Merge multi-line addresses into a single string.
+  - Total Weight: Prefer the main bill's gross or chargeable weight totals when multiple weights appear.
+  - Total Prepaid: The total prepaid charges amount. Look for "Total Prepaid" or "Prepaid" totals in the charges section. Return as a numeric value.
+  - Total Other Charges: Any additional charges beyond freight (e.g. handling, fuel surcharge, security). Look for "Other Charges" or "Due Agent/Carrier" columns. Return as a numeric value.
+  - Currency: The 3-letter ISO currency code used on the document (e.g. "USD", "EUR", "MYR", "THB", "SGD"). Extract from the currency declaration box or charges section.
+  - Execution Date: The date the AWB was executed/issued. Format as YYYY-MM-DD if possible; otherwise preserve the original format as a string.
+  - Flight Number: The carrier flight number (e.g. "MH-0123"). If multiple flights are listed, extract the first/primary one.
+  - Freight Prepaid Numbers: Extract any freight prepaid numbers, accounting codes, or monetary amounts. Pay close attention to the "Prepaid" column in the charges section.
+  - Number Lists (Prepaid/Reference): If prepaid numbers or other reference codes appear as a comma-separated string of digits (e.g., "20250703317,20250703327,7112915,..."), extract all the values. Keep them as a comma-separated list, but clean up any trailing commas at the end of the string.
+  - freight_numbers: Extract every House AWB (HAWB) number referenced on this MAWB. These typically appear in a consolidation breakdown table, an attached house AWB list, or anywhere the document lists individual shipment reference numbers under the master bill. Each number must be a clean string (e.g. "MYN-12345678"). Return an empty list [] if none are found.
