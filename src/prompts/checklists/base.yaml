@@ -8,6 +8,6 @@ system_prompt: |
 # Default user message shape; override per type with user_prompt_template if needed.
 user_prompt_template: |
   Page type label: {page_type}
-
+  {sub_page_type_context}
   OCR text:
   {ocr_text}

@@ -59,10 +59,20 @@ def format_checklist_user_prompt(
     user_prompt_template: str,
     page_type: str,
     ocr_text: str,
+    sub_page_type: Optional[str] = None,
 ) -> str:
     # Avoid str.format: OCR text may contain { or }.
-    return (
+    prompt = (
         user_prompt_template.replace('{page_type}', page_type).replace(
             '{ocr_text}', ocr_text
         )
     )
+    
+    # Handle sub_page_type context
+    if sub_page_type and sub_page_type != 'UNKNOWN':
+        sub_context = f'Sub page type (company): {sub_page_type}'
+    else:
+        sub_context = ''
+    
+    prompt = prompt.replace('{sub_page_type_context}', sub_context)
+    return prompt

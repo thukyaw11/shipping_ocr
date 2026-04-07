@@ -3,6 +3,16 @@ from typing import Any, Dict, List, Literal, Optional
 from datetime import datetime
 
 
+class CanvasDocument(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    user_id: str
+    name: str
+    status: str = "active"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    edited_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class ValidationResult(BaseModel):
     """Result of a single cross-validation rule evaluation."""
     category: Optional[str] = None
@@ -24,6 +34,7 @@ class OCRPage(BaseModel):
     paged_idx: int
     page_confidence: Optional[float] = None
     page_type: Optional[str] = None
+    sub_page_type: Optional[str] = None
     image_bbox: List[float]
     text_lines: List[OCRLine]
     checklist: Optional[Dict[str, Any]] = None
@@ -41,6 +52,8 @@ class PageConnection(BaseModel):
 class OCRDocument(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
+    canvas_id: Optional[str] = None
+    sort_order: int = 0
     user_id: Optional[str] = None
     filename: str
     total_pages: int

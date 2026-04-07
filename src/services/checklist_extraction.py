@@ -38,6 +38,7 @@ def extract_checklist_sync(
     page_type: str,
     ocr_text: str,
     max_ocr_chars: int = 14000,
+    sub_page_type: Optional[str] = None,
 ) -> Optional[dict[str, Any]]:
     model_cls = checklist_model_for_page_type(page_type)
     if model_cls is None:
@@ -52,7 +53,7 @@ def extract_checklist_sync(
     if not kind:
         return None
     system_prompt, user_tmpl = build_checklist_prompts(kind)
-    user_prompt = format_checklist_user_prompt(user_tmpl, pt, text)
+    user_prompt = format_checklist_user_prompt(user_tmpl, pt, text, sub_page_type)
     try:
         parsed = gemini.generate_structured_json(
             system_prompt,

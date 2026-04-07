@@ -150,6 +150,27 @@ async def run_surya_ocr_with_classification(
 
     print('[ocr] page types classified')
 
+    # Classify invoice company sub-type for INVOICE pages
+    invoice_company_tasks = []
+    invoice_page_indices = []
+    for idx, page_type in enumerate(page_types):
+        if page_type == 'INVOICE':
+            invoice_page_indices.append(idx)
+            invoice_company_tasks.append(
+                run_in_threadpool(
+                    classifier.classify_invoice_company,
+                    sanitized_page_texts[idx],
+                    idx + 1
+                )
+            )
+
+    if invoice_company_tasks:
+        print(f'[ocr] classifying {len(invoice_company_tasks)} invoice page(s) for company...')
+        company_types = await asyncio.gather(*invoice_company_tasks)
+        for invoice_idx, company_type in zip(invoice_page_indices, company_types):
+            pages_list[invoice_idx].sub_page_type = company_type
+        print('[ocr] invoice companies classified')
+
     doc_clean_text = '\n\n'.join(sanitized_page_texts)
     print('[ocr] classifying document_type...')
     started = time.monotonic()
