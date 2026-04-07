@@ -1,0 +1,29 @@
+{
+  "_comment": "Use 'lm-studio' block when the server is already running (python mcp_server.py). Use 'shipping-ocr' block for Cursor/Claude Desktop which spawn the process themselves.",
+  "mcpServers": {
+    "shipping-ocr-http": {
+      "type": "sse",
+      "url": "http://localhost:8001/sse"
+    },
+    "shipping-ocr-stdio": {
+      "command": "python",
+      "args": [
+        "/Users/kyawminthu/Desktop/minthu/no1-service/shipping-bill-ocr/mcp_server.py",
+        "--stdio"
+      ],
+      "env": {
+        "MONGODB_URL": "mongodb://localhost:27017",
+        "DATABASE_NAME": "shipping_ocr"
+      }
+    },
+    "mongodb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mongodb-js/mongodb-mcp-server",
+        "--connectionString",
+        "mongodb://localhost:27017"
+      ]
+    }
+  }
+}
