@@ -85,7 +85,7 @@ class InvoiceCompanyClassificationOutput(BaseModel):
     )
 
 
-def sanitize_ocr_text(ocr_text: str, max_chars: int = 12000) -> str:
+def sanitize_ocr_text(ocr_text: str, max_chars: int = 4000) -> str:
     if not ocr_text.strip():
         return ocr_text
     normalized = ' '.join(ocr_text.split())

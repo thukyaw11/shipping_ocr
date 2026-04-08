@@ -1,5 +1,6 @@
 from src.core.config import Config
 from src.services.ai.gemini_provider import (
+    GeminiTextProvider,
     build_default_gemini_provider,
     gemini_sdk_available,
 )
@@ -9,17 +10,22 @@ from src.services.ai.base import TextGenerationProvider
 
 def get_classification_text_provider() -> TextGenerationProvider:
     """
-    Resolve the LLM used for document/page type classification from Config.
+    Resolve the LLM used for document/page type classification.
+    Uses GEMINI_CLASSIFICATION_MODEL (default: gemini-2.0-flash-lite) when Gemini
+    is available — a faster, cheaper model sufficient for label classification.
 
     CLASSIFICATION_PROVIDER:
-      - auto: Gemini when API key + SDK exist; otherwise Ollama (no Gemini configured)
-      - gemini: Gemini only; raises if unavailable (never falls back to Ollama)
+      - auto: Gemini when API key + SDK exist; otherwise Ollama
+      - gemini: Gemini only; raises if unavailable
       - ollama: Ollama only
     """
     mode = (Config.CLASSIFICATION_PROVIDER or "auto").strip().lower()
 
     def try_gemini() -> TextGenerationProvider | None:
-        return build_default_gemini_provider()
+        key = Config.GEMINI_API_KEY
+        if not key or not gemini_sdk_available():
+            return None
+        return GeminiTextProvider(api_key=key, model=Config.GEMINI_CLASSIFICATION_MODEL)
 
     def ollama() -> OllamaTextProvider:
         return build_default_ollama_provider()

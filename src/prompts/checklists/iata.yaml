@@ -1,0 +1,6 @@
+system_prompt: |
+  Focus on extracting key IATA air waybill fields: the AWB number, the shipper's reference number, and the document date.
+
+  - AWB Number (awb_number): The Air Waybill number on this document. Typically formatted as XXX-XXXXXXXX (3-digit airline prefix followed by 8 digits, e.g. "160-12345678"). Look for labels like "AWB No.", "Air Waybill No.", or "Waybill Number".
+  - Shipper Reference Number (shipper_reference_number): The shipper's own internal reference or booking reference for this shipment. Look for labels like "Shipper's Reference", "Reference No.", "Booking Ref.", or "Shipper Ref. No.". Use null if not present.
+  - Date (date): The date the document was issued or executed. Format as YYYY-MM-DD if possible; otherwise preserve the original format as a string. Look for labels like "Date", "Issue Date", "Execution Date", or "Date of Issue". Use null if not present.

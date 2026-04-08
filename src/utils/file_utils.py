@@ -1,7 +1,8 @@
 from PIL import Image
 import pypdfium2
 
-PDF_DPI = 300
+PDF_DPI = 150
+
 
 def pdf_to_images(data: bytes) -> list[Image.Image]:
     """Convert every page of a PDF to a PIL Image at PDF_DPI resolution."""

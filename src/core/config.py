@@ -8,6 +8,8 @@ class Config:
     QWEN3_API_TOKEN = os.getenv('QWEN3_API_TOKEN')
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+    # Lighter model used only for page/doc classification (not checklist extraction)
+    GEMINI_CLASSIFICATION_MODEL = os.getenv('GEMINI_CLASSIFICATION_MODEL', 'gemini-2.5-flash-lite')
     # Document/page classification: auto | gemini | ollama
     CLASSIFICATION_PROVIDER = os.getenv('CLASSIFICATION_PROVIDER', 'auto')
     OLLAMA_CLASSIFICATION_MODEL = os.getenv(

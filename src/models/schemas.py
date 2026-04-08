@@ -38,6 +38,7 @@ class OCRPage(BaseModel):
     image_bbox: List[float]
     text_lines: List[OCRLine]
     checklist: Optional[Dict[str, Any]] = None
+    raw_text: Optional[str] = None
 
 
 class PageConnection(BaseModel):

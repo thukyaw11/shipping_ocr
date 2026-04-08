@@ -1,0 +1,9 @@
+system_prompt: |
+  Focus on extracting key House Air Waybill (HAWB) fields: the HAWB number, the master AWB number it belongs to, number of pieces, weight, destination, and goods description.
+
+  - HAWB Number (hawb_no): The House AWB number for this individual shipment. Typically formatted as a carrier prefix followed by digits (e.g. "MYN-12345678"). This is the primary identifier on the document.
+  - Master AWB Number (awb_number): The Master Air Waybill number this HAWB is consolidated under. Typically formatted as XXX-XXXXXXXX (3-digit airline prefix followed by 8 digits, e.g. "160-12345678"). Look for labels like "Master AWB", "MAWB", or "Consol AWB".
+  - Pieces (pcs): The total number of packages or pieces in this shipment. Must be a positive integer. Look for labels like "No. of Pieces", "PCS", "Pkgs", or "Quantity".
+  - Weight (weight_kg): The gross weight of the shipment in kilograms. Must be a positive number. If the unit is LB or LBS, convert to kg (divide by 2.20462). Look for labels like "Gross Weight", "Weight", "Wt." with a "KG" or "K" unit indicator.
+  - Destination (destination): The destination airport or city code for this shipment (e.g. "KUL", "SIN", "BKK"). Look for labels like "Destination", "To", or "Airport of Destination".
+  - Goods Description (goods_description): A brief description of the cargo contents. Look for labels like "Nature and Quantity of Goods", "Description of Goods", or "Commodity". Merge multi-line descriptions into a single clean string. Use null if absent.

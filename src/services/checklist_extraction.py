@@ -4,6 +4,7 @@ from typing import Any, Optional, Type
 from pydantic import BaseModel
 
 from src.models.checklists import (
+    IATAChecklist,
     InvoiceChecklist,
     MAWBCheckList,
     ManifestChecklist,
@@ -20,7 +21,7 @@ logger = logging.getLogger('shipping_bill_ocr')
 PAGE_TYPE_TO_CHECKLIST_MODEL: dict[str, Type[BaseModel]] = {
     'MAWB': MAWBCheckList,
     'HAWB': MAWBCheckList,
-    'IATA': MAWBCheckList,
+    'IATA': IATAChecklist,
     'INVOICE': InvoiceChecklist,
     'CARGO_MANIFEST': ManifestChecklist,
 }

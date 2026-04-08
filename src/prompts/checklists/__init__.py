@@ -7,8 +7,8 @@ _PKG_DIR = Path(__file__).resolve().parent
 
 _KIND_BY_PAGE_TYPE: dict[str, str] = {
     'MAWB': 'mawb',
-    'HAWB': 'mawb',
-    'IATA': 'mawb',
+    'HAWB': 'hawb',
+    'IATA': 'iata',
     'INVOICE': 'invoice',
     'CARGO_MANIFEST': 'manifest',
 }
@@ -67,12 +67,12 @@ def format_checklist_user_prompt(
             '{ocr_text}', ocr_text
         )
     )
-    
+
     # Handle sub_page_type context
     if sub_page_type and sub_page_type != 'UNKNOWN':
         sub_context = f'Sub page type (company): {sub_page_type}'
     else:
         sub_context = ''
-    
+
     prompt = prompt.replace('{sub_page_type_context}', sub_context)
     return prompt

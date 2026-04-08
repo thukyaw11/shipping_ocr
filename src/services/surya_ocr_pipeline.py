@@ -1,5 +1,6 @@
 import asyncio
 import io
+import os
 import time
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -20,6 +21,18 @@ from src.services.ocr_service import (
 )
 from src.utils import pdf_to_images
 
+_RECOGNITION_BATCH_SIZE: Optional[int] = (
+    int(os.environ["RECOGNITION_BATCH_SIZE"])
+    if os.environ.get("RECOGNITION_BATCH_SIZE")
+    else None
+)
+_DETECTOR_BATCH_SIZE: Optional[int] = (
+    int(os.environ["DETECTOR_BATCH_SIZE"])
+    if os.environ.get("DETECTOR_BATCH_SIZE")
+    else None
+)
+_MAX_IMAGE_DIM = 2000
+
 
 @dataclass
 class SuryaOcrPipelineResult:
@@ -27,6 +40,16 @@ class SuryaOcrPipelineResult:
     document_type: str
     overall_confidence: Optional[float]
     raw_text_pages: List[str]
+
+
+def _cap_image_size(img: Image.Image, max_dim: int = _MAX_IMAGE_DIM) -> Image.Image:
+    """Downscale an image so its longest side does not exceed max_dim."""
+    w, h = img.size
+    longest = max(w, h)
+    if longest <= max_dim:
+        return img
+    scale = max_dim / longest
+    return img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
 
 
 def load_images_from_upload(
@@ -39,149 +62,154 @@ def load_images_from_upload(
         or (filename or '').lower().endswith('.pdf')
     )
     if is_pdf:
-        return pdf_to_images(contents)
+        return [_cap_image_size(img) for img in pdf_to_images(contents)]
     if (content_type or '').startswith('image/'):
-        return [Image.open(io.BytesIO(contents)).convert('RGB')]
+        img = Image.open(io.BytesIO(contents)).convert('RGB')
+        return [_cap_image_size(img)]
     raise HTTPException(
         status_code=400,
         detail='Upload must be an image or PDF.',
     )
 
 
-def run_surya_recognition(images: List[Image.Image]):
-    """
-    Run recognition one page at a time. Batching many PDF pages into a single
-    rec_predictor() call can trigger torch/MPS errors (e.g. bogus indices in
-    the vision encoder) on large documents.
-    """
-    predictions = []
-    for idx, img in enumerate(images, start=1):
-        print(f'[ocr] surya page {idx}/{len(images)} recognition...')
-        batch_preds = rec_predictor([img], det_predictor=det_predictor)
-        predictions.extend(batch_preds)
-    return predictions
+def _build_ocr_page(pred, page_num: int) -> Tuple[OCRPage, str]:
+    """Convert a Surya prediction into an OCRPage + raw layout text."""
+    lines = []
+    page_confidence_sum = 0.0
+    page_confidence_count = 0
 
-
-def build_pages_from_predictions(predictions) -> Tuple[
-    List[OCRPage],
-    List[str],
-    Optional[float],
-]:
-    pages_list: List[OCRPage] = []
-    raw_text_pages: List[str] = []
-    confidence_sum = 0.0
-    confidence_count = 0
-
-    for page_num, pred in enumerate(predictions, start=1):
-        lines = []
-        page_text = build_layout_text(pred.text_lines)
-        raw_text_pages.append(page_text)
-        page_confidence_sum = 0.0
-        page_confidence_count = 0
-        for line in pred.text_lines:
-            if not line.text.strip():
-                continue
-            line_confidence = float(line.confidence)
-            confidence_sum += line_confidence
-            confidence_count += 1
-            page_confidence_sum += line_confidence
-            page_confidence_count += 1
-            lines.append(OCRLine(
-                text=line.text,
-                confidence=line_confidence,
-                bbox=line.bbox,
-                polygon=[list(pt) for pt in line.polygon],
-            ))
-        page_confidence = (
-            round(page_confidence_sum / page_confidence_count, 6)
-            if page_confidence_count > 0
-            else None
-        )
-        pages_list.append(OCRPage(
-            paged_idx=page_num,
-            page_confidence=page_confidence,
-            page_type='UNKNOWN',
-            image_bbox=pred.image_bbox,
-            text_lines=lines,
+    for line in pred.text_lines:
+        if not line.text.strip():
+            continue
+        lc = float(line.confidence)
+        page_confidence_sum += lc
+        page_confidence_count += 1
+        lines.append(OCRLine(
+            text=line.text,
+            confidence=lc,
+            bbox=line.bbox,
+            polygon=[list(pt) for pt in line.polygon],
         ))
 
-    overall_confidence = (
-        round(confidence_sum / confidence_count, 6)
-        if confidence_count > 0
+    page_confidence = (
+        round(page_confidence_sum / page_confidence_count, 6)
+        if page_confidence_count > 0
         else None
     )
-    return pages_list, raw_text_pages, overall_confidence
+    raw_text = build_layout_text(pred.text_lines)
+    page = OCRPage(
+        paged_idx=page_num,
+        page_confidence=page_confidence,
+        page_type='UNKNOWN',
+        image_bbox=pred.image_bbox,
+        text_lines=lines,
+    )
+    return page, raw_text
+
+
+def _derive_document_type(page_types: List[str]) -> str:
+    """
+    Infer the overall document type from already-classified page types.
+    Most frequent non-UNKNOWN label wins; falls back to UNKNOWN.
+    Saves one Gemini API call per upload.
+    """
+    known = [pt for pt in page_types if pt and pt != 'UNKNOWN']
+    if not known:
+        return 'UNKNOWN'
+    return max(set(known), key=known.count)
 
 
 async def run_surya_ocr_with_classification(
     classifier: DocumentTypeClassifier,
     images: List[Image.Image],
 ) -> SuryaOcrPipelineResult:
-    predictions = await run_in_threadpool(
-        lambda: run_surya_recognition(images),
-    )
+
+    try:
+        current_device = next(rec_predictor.model.parameters()).device
+        print(f"[debug] Surya is running on: {current_device}")
+    except AttributeError:
+        # အကယ်၍ version ကွဲလွဲလို့ model မရှိရင် တခြားနည်းနဲ့ စစ်မယ်
+        print("[debug] Could not determine device directly, checking torch...")
+        import torch
+        print(f"[debug] MPS available: {torch.backends.mps.is_available()}")
+    """
+    Optimized Pipeline:
+    - Batch OCR for speed
+    - Language locked to English ['en'] for efficiency
+    - Concurrent Classification
+    """
+    total = len(images)
+    if total == 0:
+        return SuryaOcrPipelineResult([], "UNKNOWN", None, [])
+
+    # --- အဆင့် (၁) BATCH OCR (English Only) ---
     print(
-        f'[ocr] surya predictions ready pages={len(predictions) if predictions else 0}',
-    )
+        f'[ocr] surya starting batch recognition for {total} pages (Language: EN)...')
 
-    pages_list, raw_text_pages, overall_confidence = build_pages_from_predictions(
-        predictions,
+    all_preds = await run_in_threadpool(
+        rec_predictor,
+        images,
+        task_names=None,
+        det_predictor=det_predictor,
+        detection_batch_size=_DETECTOR_BATCH_SIZE,
+        recognition_batch_size=_RECOGNITION_BATCH_SIZE,
+        math_mode=False,
     )
-    print('[ocr] built page objects. computing confidence/type...')
+    pages_list: List[OCRPage] = []
+    raw_text_pages: List[str] = []
 
-    print(
-        f'[ocr] sanitizing {len(raw_text_pages)} page(s) for type classification...',
-    )
-    sanitized_page_texts = await asyncio.gather(
-        *[
-            run_in_threadpool(sanitize_page_with_log, idx + 1, t)
-            for idx, t in enumerate(raw_text_pages)
-        ],
-    )
+    # --- အဆင့် (၂) BUILD PAGES & CLASSIFY ---
+    async def _sanitize_and_classify(raw_text: str, page_num: int) -> Tuple[str, str]:
+        # sanitize_page_with_log is pure string ops — no need for a thread
+        sanitized = sanitize_page_with_log(page_num, raw_text)
+        page_type = await run_in_threadpool(classifier.classify_page, sanitized, page_num)
+        return sanitized, page_type
 
-    page_type_tasks = [
-        run_in_threadpool(classifier.classify_page, txt, idx + 1)
-        for idx, txt in enumerate(sanitized_page_texts)
-    ]
-    print(f'[ocr] classifying {len(page_type_tasks)} page(s) for page_type...')
-    page_types = await asyncio.gather(*page_type_tasks)
+    classify_tasks: List[asyncio.Task] = []
+
+    for idx, pred in enumerate(all_preds):
+        page_num = idx + 1
+        page, raw_text = _build_ocr_page(pred, page_num)
+        pages_list.append(page)
+        raw_text_pages.append(raw_text)
+
+        # Classification task ကို background တွင် fire လုပ်ထားမည်
+        classify_tasks.append(asyncio.create_task(
+            _sanitize_and_classify(raw_text, page_num)
+        ))
+
+    print(f'[ocr] surya batch done, awaiting classification results...')
+    classify_results = await asyncio.gather(*classify_tasks)
+
+    sanitized_page_texts = [r[0] for r in classify_results]
+    page_types = [r[1] for r in classify_results]
+
     for idx, page_type in enumerate(page_types):
         pages_list[idx].page_type = page_type
+        pages_list[idx].raw_text = raw_text_pages[idx]
 
-    print('[ocr] page types classified')
+    # --- အဆင့် (၃) INVOICE & FINAL CLASSIFICATION ---
+    invoice_page_indices = [i for i, pt in enumerate(
+        page_types) if pt == 'INVOICE']
+    if invoice_page_indices:
+        print(
+            f'[ocr] classifying {len(invoice_page_indices)} invoice companies...')
+        company_types = await asyncio.gather(*[
+            run_in_threadpool(classifier.classify_invoice_company,
+                              sanitized_page_texts[i], i + 1)
+            for i in invoice_page_indices
+        ])
+        for i, company_type in zip(invoice_page_indices, company_types):
+            pages_list[i].sub_page_type = company_type
 
-    # Classify invoice company sub-type for INVOICE pages
-    invoice_company_tasks = []
-    invoice_page_indices = []
-    for idx, page_type in enumerate(page_types):
-        if page_type == 'INVOICE':
-            invoice_page_indices.append(idx)
-            invoice_company_tasks.append(
-                run_in_threadpool(
-                    classifier.classify_invoice_company,
-                    sanitized_page_texts[idx],
-                    idx + 1
-                )
-            )
+    document_type = _derive_document_type(page_types)
 
-    if invoice_company_tasks:
-        print(f'[ocr] classifying {len(invoice_company_tasks)} invoice page(s) for company...')
-        company_types = await asyncio.gather(*invoice_company_tasks)
-        for invoice_idx, company_type in zip(invoice_page_indices, company_types):
-            pages_list[invoice_idx].sub_page_type = company_type
-        print('[ocr] invoice companies classified')
-
-    doc_clean_text = '\n\n'.join(sanitized_page_texts)
-    print('[ocr] classifying document_type...')
-    started = time.monotonic()
-    document_type = await run_in_threadpool(
-        classifier.classify_document,
-        doc_clean_text,
-    )
-    print(
-        f'[ocr] document type classified={document_type} '
-        f'took_ms={(time.monotonic() - started) * 1000.0:.1f}',
-    )
+    # Confidence summary
+    confidence_values = [
+        line.confidence for page in pages_list for line in page.text_lines if page.text_lines
+    ]
+    overall_confidence = round(
+        sum(confidence_values) / len(confidence_values), 6) if confidence_values else None
 
     return SuryaOcrPipelineResult(
         pages=pages_list,

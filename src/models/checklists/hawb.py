@@ -9,6 +9,7 @@ class HawbEntry(BaseModel):
     model_config = checklist_model_config
 
     hawb_no: str
+    awb_number: str
     pcs: int = Field(..., gt=0)
     weight_kg: float = Field(..., gt=0)
     destination: str

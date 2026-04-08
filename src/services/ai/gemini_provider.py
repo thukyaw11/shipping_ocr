@@ -27,8 +27,8 @@ class GeminiTextProvider:
     def __init__(self, api_key: str, model: str) -> None:
         if not _GEMINI_IMPORT_OK:
             raise RuntimeError("google-genai is not installed")
-        self._api_key = api_key
         self._model = model
+        self._client = genai.Client(api_key=api_key)
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
         started = time.monotonic()
@@ -37,8 +37,7 @@ class GeminiTextProvider:
             self._model,
             len(user_prompt or ""),
         )
-        client = genai.Client(api_key=self._api_key)
-        resp = client.models.generate_content(
+        resp = self._client.models.generate_content(
             model=self._model,
             contents=f"{system_prompt}\n\n{user_prompt}",
         )
@@ -62,8 +61,7 @@ class GeminiTextProvider:
             len(user_prompt or ""),
             getattr(response_model, "__name__", "model"),
         )
-        client = genai.Client(api_key=self._api_key)
-        resp = client.models.generate_content(
+        resp = self._client.models.generate_content(
             model=self._model,
             contents=f"{system_prompt}\n\n{user_prompt}",
             config={
