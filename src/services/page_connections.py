@@ -23,6 +23,7 @@ Document types (page_type values)
 """
 
 import logging
+from pprint import pprint
 from typing import Any, Dict, List, Optional, Set
 
 from src.models.schemas import OCRPage, PageConnection
@@ -37,16 +38,16 @@ CONNECTION_RULES: List[dict] = [
     # ── MAWB → HAWB ───────────────────────────────────────────────────────────
     # The MAWB lists the HAWB numbers it covers in freight_numbers.
     # Each HAWB page's own awb_number must appear in that list.
-    {
-        "name": "MAWB → HAWB",
-        "from_type": "MAWB",
-        "from_key": "freight_numbers",  # List[str] on MAWBCheckList
-        "from_array_key": None,         # already a flat list
-        "to_type": "HAWB",
-        "to_key": "awb_number",         # scalar on each HAWB page
-        "to_array_key": None,
-        "type": "list_overlap",
-    },
+    # {
+    #     "name": "MAWB → HAWB",
+    #     "from_type": "MAWB",
+    #     "from_key": "freight_numbers",  # List[str] on MAWBCheckList
+    #     "from_array_key": None,         # already a flat list
+    #     "to_type": "HAWB",
+    #     "to_key": "awb_number",         # scalar on each HAWB page
+    #     "to_array_key": None,
+    #     "type": "list_overlap",
+    # },
 
     # ── MAWB → CARGO_MANIFEST ─────────────────────────────────────────────────
     # A MAWB and a manifest belong to the same shipment when at least one HAWB
@@ -76,6 +77,7 @@ CONNECTION_RULES: List[dict] = [
         "type": "list_overlap",
     },
 
+
     # ── Add future rules here — no engine changes needed ──────────────────────
     # Example: link IATA pages to the manifest the same way as MAWB
     # {
@@ -89,16 +91,36 @@ CONNECTION_RULES: List[dict] = [
     #     "type": "list_overlap",
     # },
     # Example: link MAWB to IATA by shared AWB number
-    # {
-    #     "name": "MAWB → IATA",
-    #     "from_type": "MAWB",
-    #     "from_key": "awb_number",
-    #     "from_array_key": None,
-    #     "to_type": "IATA",
-    #     "to_key": "awb_number",
-    #     "to_array_key": None,
-    #     "type": "key_match",
-    # },
+    {
+        "name": "HAWB → IATA",
+        "from_type": "HAWB",
+        "from_key": "awb_number",
+        "from_array_key": None,
+        "to_type": "IATA",
+        "to_key": "awb_number",
+        "to_array_key": None,
+        "type": "key_match",
+    },
+    {
+        "name": "INVOICE → INVOICE",
+        "from_type": "INVOICE",
+        "from_key": "invoice_no",
+        "from_array_key": None,
+        "to_type": "INVOICE",
+        "to_key": "invoice_no",
+        "to_array_key": None,
+        "type": "key_match",
+    },
+    {
+        "name": "HAWB → INVOICE",
+        "from_type": "HAWB",
+        "from_key": "awb_number",
+        "from_array_key": None,
+        "to_type": "INVOICE",
+        "to_key": "awb_number",
+        "to_array_key": None,
+        "type": "key_match",
+    },
 ]
 
 
@@ -165,11 +187,19 @@ def _eval_rule(
     connections: List[PageConnection] = []
 
     for from_page in from_pages:
-        from_set = _extract_scalars(from_page.checklist, from_key, from_array_key)
+        from_set = _extract_scalars(
+            from_page.checklist, from_key, from_array_key)
         if not from_set:
             continue
 
         for to_page in to_pages:
+            # Skip self-connections and duplicate reverse pairs for same-type rules
+            if to_page.paged_idx == from_page.paged_idx:
+                continue
+            if rule['from_type'].upper() == rule['to_type'].upper() and \
+                    to_page.paged_idx < from_page.paged_idx:
+                continue
+
             to_set = _extract_scalars(to_page.checklist, to_key, to_array_key)
             if not to_set:
                 continue
@@ -212,17 +242,20 @@ def build_page_connections(pages: List[OCRPage]) -> List[PageConnection]:
 
     all_connections: List[PageConnection] = []
 
+    pprint(CONNECTION_RULES)
+
     for rule in CONNECTION_RULES:
         from_type = rule['from_type'].upper()
-        to_type   = rule['to_type'].upper()
+        to_type = rule['to_type'].upper()
 
         from_pages = by_type.get(from_type, [])
-        to_pages   = by_type.get(to_type, [])
+        to_pages = by_type.get(to_type, [])
 
         if not from_pages or not to_pages:
             logger.debug(
                 'connection rule="%s" skipped (from=%s×%d to=%s×%d)',
-                rule['name'], from_type, len(from_pages), to_type, len(to_pages),
+                rule['name'], from_type, len(
+                    from_pages), to_type, len(to_pages),
             )
             continue
 

@@ -20,6 +20,18 @@ logger = logging.getLogger('shipping_bill_ocr')
 router = APIRouter()
 
 
+class CanvasNameUpdateBody(BaseModel):
+    name: str = Field(..., min_length=1, max_length=512)
+
+    @field_validator('name')
+    @classmethod
+    def strip_non_empty(cls, v: str) -> str:
+        s = (v or '').strip()
+        if not s:
+            raise ValueError('name cannot be empty')
+        return s
+
+
 class PageTypeUpdateBody(BaseModel):
     """Arbitrary label for the page; no fixed vocabulary."""
 
@@ -31,6 +43,20 @@ class PageTypeUpdateBody(BaseModel):
         s = (v or '').strip()
         if not s:
             raise ValueError('page_type cannot be empty')
+        return s
+
+
+class SubPageTypeUpdateBody(BaseModel):
+    """Arbitrary sub-label for the page; no fixed vocabulary."""
+
+    sub_page_type: str = Field(..., max_length=512)
+
+    @field_validator('sub_page_type')
+    @classmethod
+    def strip_non_empty(cls, v: str) -> str:
+        s = (v or '').strip()
+        if not s:
+            raise ValueError('sub_page_type cannot be empty')
         return s
 
 
@@ -309,6 +335,42 @@ async def delete_canvas(
 
 
 # ---------------------------------------------------------------------------
+# Rename canvas
+# ---------------------------------------------------------------------------
+
+@router.patch("/{canvas_id}/name", response_model=ApiResponse[dict])
+async def rename_canvas(
+    canvas_id: str,
+    body: CanvasNameUpdateBody = Body(...),
+    payload: dict = Depends(verify_jwt),
+):
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=401, detail="Invalid token: missing subject")
+
+    await _assert_canvas_owned_by_user(canvas_id, user_id)
+
+    try:
+        canvas_oid = ObjectId(canvas_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid canvas ID format.")
+
+    now = datetime.utcnow()
+    await db.db["canvases"].update_one(
+        {"_id": canvas_oid, "user_id": user_id},
+        {"$set": {"name": body.name, "edited_at": now}},
+    )
+
+    updated = await db.db["canvases"].find_one({"_id": canvas_oid, "user_id": user_id})
+    if not updated:
+        raise HTTPException(status_code=404, detail="Canvas not found.")
+
+    serialized = _serialize(updated)
+    return ApiResponse.ok(data=serialized, message="Canvas renamed")
+
+
+# ---------------------------------------------------------------------------
 # Page type update — scoped to a specific PDF inside a canvas
 # ---------------------------------------------------------------------------
 
@@ -373,6 +435,73 @@ async def update_page_type(
     serialized_doc = _enrich_ocr_result(serialized_doc, user_tz)
 
     return ApiResponse.ok(data=serialized_doc, message='Page type updated')
+
+
+# ---------------------------------------------------------------------------
+# Sub-page type update — scoped to a specific PDF inside a canvas
+# ---------------------------------------------------------------------------
+
+@router.patch(
+    '/{canvas_id}/pdfs/{ocr_result_id}/pages/{paged_idx}/sub-page-type',
+    response_model=ApiResponse[dict],
+)
+async def update_sub_page_type(
+    canvas_id: str,
+    ocr_result_id: str,
+    paged_idx: int = Path(
+        ...,
+        ge=1,
+        description='1-based page index (same as data[].paged_idx).',
+    ),
+    payload: dict = Depends(verify_jwt),
+    x_timezone: Optional[str] = Header(None),
+    body: SubPageTypeUpdateBody = Body(...),
+):
+    """Set sub_page_type for one page to any non-empty string."""
+    user_id = payload.get('sub')
+    if not user_id:
+        raise HTTPException(
+            status_code=401, detail='Invalid token: missing subject')
+
+    await _assert_canvas_owned_by_user(canvas_id, user_id)
+    await _assert_ocr_result_in_canvas(ocr_result_id, canvas_id, user_id)
+
+    try:
+        oid = ObjectId(ocr_result_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail='Invalid ocr_result ID format.')
+
+    doc = await db.db['ocr_results'].find_one({'_id': oid, 'user_id': user_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail='PDF not found.')
+
+    pages = doc.get('data') or []
+    idx = next(
+        (i for i, p in enumerate(pages) if p.get('paged_idx') == paged_idx),
+        None,
+    )
+    if idx is None:
+        raise HTTPException(status_code=404, detail='Page not found.')
+
+    now = datetime.utcnow()
+    await db.db['ocr_results'].update_one(
+        {'_id': oid, 'user_id': user_id},
+        {'$set': {f'data.{idx}.sub_page_type': body.sub_page_type, 'edited_at': now}},
+    )
+    await db.db['canvases'].update_one(
+        {'_id': ObjectId(canvas_id)},
+        {'$set': {'edited_at': now}},
+    )
+
+    updated = await db.db['ocr_results'].find_one({'_id': oid, 'user_id': user_id})
+    if not updated:
+        raise HTTPException(status_code=404, detail='PDF not found.')
+
+    user_tz = x_timezone or 'UTC'
+    serialized_doc = _serialize(updated)
+    serialized_doc = _enrich_ocr_result(serialized_doc, user_tz)
+
+    return ApiResponse.ok(data=serialized_doc, message='Sub-page type updated')
 
 
 # ---------------------------------------------------------------------------
