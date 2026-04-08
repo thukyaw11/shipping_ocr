@@ -1,18 +1,14 @@
-import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.v1.api import api_router
+# Config must be imported first so load_dotenv() runs before surya initializes
+# its predictors (surya reads TORCH_DEVICE / batch sizes at module import time).
 from src.core.config import Config
+from src.api.v1.api import api_router
 from src.core.database import close_mongo_connection, connect_to_mongo
 from src.core.exception_handlers import register_exception_handlers
-
-logging.getLogger("surya").setLevel(logging.WARNING)
-logging.getLogger("surya.recognition").setLevel(logging.WARNING)
-logging.getLogger("surya.detection").setLevel(logging.WARNING)
-logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
 @asynccontextmanager
