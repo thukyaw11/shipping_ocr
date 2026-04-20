@@ -1,0 +1,35 @@
+services:
+  api:
+    image: shipping-bill-ocr:latest
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      TORCH_DEVICE: cpu
+      MONGODB_URL: mongodb://mongo:27017
+    volumes:
+      # Persist surya model weights across restarts
+      - surya_models:/app/.cache/datalab/models
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  surya_models:
+  mongo_data:

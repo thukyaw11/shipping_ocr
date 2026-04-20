@@ -44,6 +44,9 @@ class Config:
     GOOGLE_ID_TOKEN_CLOCK_SKEW_SECONDS: int = int(
         os.getenv("GOOGLE_ID_TOKEN_CLOCK_SKEW_SECONDS", "120"),
     )
+
+    # Billing — default price charged per scanned page (USD). Overridable via DB settings.
+    PRICE_PER_PAGE: float = float(os.getenv("PRICE_PER_PAGE", "0.05"))
     # When true, /auth/google 401 responses include google-auth verify error text (dev only).
     DEBUG_GOOGLE_AUTH: bool = os.getenv(
         "DEBUG_GOOGLE_AUTH", "false").lower() == "true"

@@ -11,6 +11,8 @@ class CanvasDocument(BaseModel):
     status: str = "active"
     created_at: datetime = Field(default_factory=datetime.utcnow)
     edited_at: datetime = Field(default_factory=datetime.utcnow)
+    is_deleted: bool = False
+    deleted_at: Optional[datetime] = None
 
 
 class ValidationResult(BaseModel):
@@ -74,3 +76,24 @@ class OCRDocument(BaseModel):
     @property
     def checklists(self) -> List[Optional[Dict[str, Any]]]:
         return [p.checklist for p in self.data]
+
+
+class ScanLog(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    user_id: str
+    filename: str
+    file_size_bytes: Optional[int] = None
+    content_type: Optional[str] = None
+    canvas_id: Optional[str] = None
+    ocr_result_id: Optional[str] = None
+    total_pages: Optional[int] = None
+    document_type: Optional[str] = None
+    status: Literal["success", "failed"] = "success"
+    error_message: Optional[str] = None
+    processing_time_ms: Optional[int] = None
+    # Billing fields — only populated on success
+    price_per_page: Optional[float] = None
+    pages_charged: Optional[int] = None
+    total_cost: Optional[float] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)

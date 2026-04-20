@@ -128,7 +128,6 @@ async def run_surya_ocr_with_classification(
         current_device = next(rec_predictor.model.parameters()).device
         print(f"[debug] Surya is running on: {current_device}")
     except AttributeError:
-        # အကယ်၍ version ကွဲလွဲလို့ model မရှိရင် တခြားနည်းနဲ့ စစ်မယ်
         print("[debug] Could not determine device directly, checking torch...")
         import torch
         print(f"[debug] MPS available: {torch.backends.mps.is_available()}")

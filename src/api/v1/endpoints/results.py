@@ -185,7 +185,7 @@ async def _assert_canvas_owned_by_user(canvas_id: str, user_id: str) -> None:
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid canvas ID format.")
 
-    doc = await db.db["canvases"].find_one({"_id": oid, "user_id": user_id}, {"_id": 1})
+    doc = await db.db["canvases"].find_one({"_id": oid, "user_id": user_id, "is_deleted": {"$ne": True}}, {"_id": 1})
     if not doc:
         raise HTTPException(status_code=404, detail="Canvas not found.")
 
@@ -225,7 +225,7 @@ async def list_canvases(
     user_tz = x_timezone or "UTC"
     skip = (page - 1) * pageSize
 
-    canvas_query: dict = {"user_id": user_id}
+    canvas_query: dict = {"user_id": user_id, "is_deleted": {"$ne": True}}
 
     if customer_name:
         matching_ids = await db.db["ocr_results"].distinct(
@@ -278,7 +278,7 @@ async def get_canvas_detail(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid canvas ID format.")
 
-    canvas = await db.db["canvases"].find_one({"_id": canvas_oid, "user_id": user_id})
+    canvas = await db.db["canvases"].find_one({"_id": canvas_oid, "user_id": user_id, "is_deleted": {"$ne": True}})
     if not canvas:
         raise HTTPException(status_code=404, detail="Canvas not found.")
 
@@ -327,9 +327,11 @@ async def delete_canvas(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid canvas ID format.")
 
-    await db.db["ocr_results"].delete_many({"canvas_id": canvas_id, "user_id": user_id})
-    await db.db["highlights"].delete_many({"canvas_id": canvas_id, "user_id": user_id})
-    await db.db["canvases"].delete_one({"_id": canvas_oid, "user_id": user_id})
+    now = datetime.utcnow()
+    await db.db["canvases"].update_one(
+        {"_id": canvas_oid, "user_id": user_id},
+        {"$set": {"is_deleted": True, "deleted_at": now, "edited_at": now}},
+    )
 
     return ApiResponse.ok(data={}, message="Canvas deleted")
 
