@@ -1,6 +1,8 @@
 import boto3
 from src.core.config import Config
 
+_PUBLIC_BASE_URL = "https://pub-343cbead881747c79d3db832c7824527.r2.dev"
+
 
 class S3Service:
     def __init__(self):
@@ -21,8 +23,7 @@ class S3Service:
                 object_name,
                 ExtraArgs={"ContentType": content_type}
             )
-            public_base_url = "https://pub-343cbead881747c79d3db832c7824527.r2.dev"
-            return f"{public_base_url}/{object_name}"
+            return f"{_PUBLIC_BASE_URL}/{object_name}"
         except Exception as e:
             print(f"R2 Upload Error: {str(e)}")
             raise e
