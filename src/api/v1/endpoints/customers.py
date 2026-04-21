@@ -165,13 +165,15 @@ async def get_hs_codes(
     customer_id: str = Path(..., description='Customer ID'),
     page: int = Query(1, ge=1),
     pageSize: int = Query(20, ge=1, le=100),
-    search: Optional[str] = Query(None, description='Search by code or product name'),
+    search: Optional[str] = Query(
+        None, description='Search by code or product name'),
     payload: dict = Depends(verify_jwt),
 ):
     """Get paginated HS code data for a specific customer."""
     user_id = payload.get('sub')
     if not user_id:
-        raise HTTPException(status_code=401, detail='Invalid token: missing subject')
+        raise HTTPException(
+            status_code=401, detail='Invalid token: missing subject')
 
     doc = await db.db['customers'].find_one(
         {'_id': customer_id, 'user_id': user_id},
@@ -228,7 +230,8 @@ async def upload_hs_codes(
         contents), read_only=True, data_only=True)
     ws = wb.active
 
-    REQUIRED_COLUMNS = {'product', 'thai_definition', 'h_s_code', 'duty', 'license', 'remark'}
+    REQUIRED_COLUMNS = {'product', 'thai_definition',
+                        'h_s_code', 'duty', 'license', 'remark'}
     OPTIONAL_COLUMNS = {'flight'}
     COLUMN_MAP = REQUIRED_COLUMNS | OPTIONAL_COLUMNS
 
@@ -296,6 +299,42 @@ async def upload_hs_codes(
     return ApiResponse.ok(
         data=Customer(**updated_doc),
         message=f'{len(hs_entries)} HS codes imported successfully',
+    )
+
+
+@router.post('/{customer_id}/hs-codes', response_model=ApiResponse[Customer])
+async def add_hs_code(
+    customer_id: str = Path(..., description='Customer Id'),
+    body: HSCodeData = Body(...),
+    payload: dict = Depends(verify_jwt)
+):
+
+    user_id = payload.get('sub')
+    if not user_id:
+        raise HTTPException(
+            status_code=401, detail='Invalid token: missing subject')
+
+    doc = await db.db['customers'].find_one({'_id': customer_id, 'user_id': user_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail='Customer not found')
+
+    await db.db['customers'].update_one(
+        {'_id': customer_id, 'user_id': user_id},
+        {
+            '$push': {'hs_code_data': body.model_dump()},
+            '$set': {'updated_at': datetime.utcnow()}
+        }
+    )
+
+    updated_doc = await db.db['customers'].find_one({
+        '_id': customer_id, 'user_id': user_id
+    })
+    updated_doc['id'] = str(updated_doc.pop('_id'))
+    updated_doc.pop('user_id', None)
+
+    return ApiResponse.ok(
+        data=Customer(**updated_doc),
+        message='HS code added successfully'
     )
 
 
@@ -390,21 +429,25 @@ async def upload_profile_pic(
     """Upload or replace a customer's profile picture (JPEG/PNG/WebP, max 5 MB)."""
     user_id = payload.get('sub')
     if not user_id:
-        raise HTTPException(status_code=401, detail='Invalid token: missing subject')
+        raise HTTPException(
+            status_code=401, detail='Invalid token: missing subject')
 
     if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail='Only JPEG, PNG, and WebP images are allowed')
+        raise HTTPException(
+            status_code=400, detail='Only JPEG, PNG, and WebP images are allowed')
 
     contents = await file.read()
     if len(contents) > MAX_PROFILE_PIC_BYTES:
-        raise HTTPException(status_code=400, detail='File size exceeds 5 MB limit')
+        raise HTTPException(
+            status_code=400, detail='File size exceeds 5 MB limit')
 
     doc = await db.db['customers'].find_one({'_id': customer_id, 'user_id': user_id})
     if not doc:
         raise HTTPException(status_code=404, detail='Customer not found')
 
     object_name = f"customer-profiles/{customer_id}"
-    url = s3_service.upload_file(io.BytesIO(contents), object_name, file.content_type)
+    url = s3_service.upload_file(io.BytesIO(
+        contents), object_name, file.content_type)
 
     await db.db['customers'].update_one(
         {'_id': customer_id, 'user_id': user_id},
