@@ -1,0 +1,22 @@
+system_prompt: |
+  Focus on extracting key Import Entry / Customs Declaration fields: entry number, entry date, importer details, supplier details, trade information, financial values, HS codes, and item descriptions.
+
+  - Entry Number (entry_number): The customs declaration or import entry reference number. Look for labels like "Entry No.", "Declaration No.", "Customs Reference". Return as a string.
+  - Entry Date (entry_date): The date the import entry was lodged or accepted. Format as YYYY-MM-DD if possible; otherwise preserve the original format.
+  - Importer Name (importer_name): Full name or company name of the importer/consignee. Merge multi-line names into a single string.
+  - Importer TIN (importer_tin): Tax identification number, customs registration number, or business license number of the importer. Look for labels like "TIN", "CRN", "License No.", "Reg. No.".
+  - Supplier Name (supplier_name): Name of the overseas supplier/exporter. Look for labels like "Supplier", "Exporter", "Seller", "Shipper".
+  - Country of Origin (country_of_origin): Country where the goods were produced or manufactured. Look for "Country of Origin", "Origin".
+  - Country of Export (country_of_export): Country from which the goods were exported. Look for "Country of Export", "Country of Shipment". May differ from origin.
+  - Port of Entry (port_of_entry): Airport or port through which goods entered. Look for "Port of Entry", "Airport of Arrival", "Point of Entry".
+  - AWB Number (awb_number): Master or house air waybill number associated with this entry. Formatted as XXX-XXXXXXXX or similar. Look for "AWB", "MAWB", "HAWB".
+  - Invoice Number (invoice_number): Commercial invoice number(s) referenced in the entry. Return the primary invoice number.
+  - Invoice Date (invoice_date): Date of the commercial invoice. Format as YYYY-MM-DD if possible.
+  - Total CIF Value (total_cif_value): Total Cost, Insurance, and Freight value of the shipment. Return as a numeric value.
+  - Currency (currency): ISO 3-letter currency code (e.g. "USD", "THB", "SGD"). Extract from the value fields.
+  - Total Duty (total_duty): Total import duty amount payable. Look for "Import Duty", "Customs Duty", "Duty Amount". Return as a numeric value.
+  - Total Tax (total_tax): Total tax amount (VAT, GST, or other taxes). Return as a numeric value.
+  - Total Payable (total_payable): Grand total amount payable to customs (duty + taxes + other charges). Return as a numeric value.
+  - HS Codes (hs_codes): List of Harmonized System tariff codes for the declared goods. Typically 6-10 digits (e.g. "3302.10.10"). Return as a list of strings; return [] if none found.
+  - Item Descriptions (item_descriptions): List of goods/commodity descriptions corresponding to each line item. Merge multi-line descriptions. Return as a list of strings; return [] if none found.
+  - Remarks (remarks): Any additional notes, conditions, or comments on the entry. Return null if absent.

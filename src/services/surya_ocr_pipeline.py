@@ -119,6 +119,53 @@ def _derive_document_type(page_types: List[str]) -> str:
     return max(set(known), key=known.count)
 
 
+async def run_surya_ocr_with_forced_type(
+    images: List[Image.Image],
+    forced_page_type: str,
+) -> SuryaOcrPipelineResult:
+    """Run Surya OCR and force all pages to a given page_type — no AI classification."""
+    total = len(images)
+    if total == 0:
+        return SuryaOcrPipelineResult([], forced_page_type, None, [])
+
+    print(f'[ocr] surya starting batch recognition for {total} pages (forced type: {forced_page_type})...')
+
+    all_preds = await run_in_threadpool(
+        rec_predictor,
+        images,
+        task_names=None,
+        det_predictor=det_predictor,
+        detection_batch_size=_DETECTOR_BATCH_SIZE,
+        recognition_batch_size=_RECOGNITION_BATCH_SIZE,
+        math_mode=False,
+    )
+
+    pages_list: List[OCRPage] = []
+    raw_text_pages: List[str] = []
+
+    for idx, pred in enumerate(all_preds):
+        page, raw_text = _build_ocr_page(pred, idx + 1)
+        page.page_type = None
+        page.raw_text = raw_text
+        pages_list.append(page)
+        raw_text_pages.append(raw_text)
+
+    confidence_values = [
+        line.confidence for page in pages_list for line in page.text_lines if page.text_lines
+    ]
+    overall_confidence = (
+        round(sum(confidence_values) / len(confidence_values), 6)
+        if confidence_values else None
+    )
+
+    return SuryaOcrPipelineResult(
+        pages=pages_list,
+        document_type=forced_page_type,
+        overall_confidence=overall_confidence,
+        raw_text_pages=raw_text_pages,
+    )
+
+
 async def run_surya_ocr_with_classification(
     classifier: DocumentTypeClassifier,
     images: List[Image.Image],

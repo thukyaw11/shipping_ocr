@@ -8,8 +8,10 @@ from bson import ObjectId
 from fastapi import HTTPException
 from fastapi.concurrency import run_in_threadpool
 
+from src.models.import_entry_schemas import ImportEntryDocument
 from src.models.schemas import CanvasDocument, OCRDocument, ScanLog
 from src.repositories.canvas_repository import canvas_repo
+from src.repositories.import_entry_repository import import_entry_repo
 from src.repositories.ocr_result_repository import ocr_result_repo
 from src.repositories.scan_log_repository import scan_log_repo
 from src.services.ai.gemini_provider import build_default_gemini_provider
@@ -21,6 +23,7 @@ from src.services.s3_service import s3_service
 from src.services.surya_ocr_pipeline import (
     load_images_from_upload,
     run_surya_ocr_with_classification,
+    run_surya_ocr_with_forced_type,
 )
 
 logger = logging.getLogger('shipping_bill_ocr')
@@ -166,6 +169,17 @@ async def process_ocr_upload(
         ocr_result_id = await ocr_result_repo.create(insert_payload)
         await canvas_repo.touch(resolved_canvas_id)
 
+        if pipeline_result.document_type == 'IMPORT_ENTRY':
+            version = await import_entry_repo.next_version(resolved_canvas_id)
+            entry = ImportEntryDocument(
+                canvas_id=resolved_canvas_id,
+                user_id=user_id,
+                ocr_result_id=ocr_result_id,
+                version=version,
+                filename=filename,
+            )
+            await import_entry_repo.create(entry.model_dump())
+
         logger.debug('[ocr] done in %.2fs', time.monotonic() - started_at)
         await _write_scan_log(
             status='success',
@@ -175,6 +189,92 @@ async def process_ocr_upload(
             document_type=pipeline_result.document_type,
         )
         return ocr_doc
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        await _write_scan_log(status='failed', error_message=str(exc))
+        raise
+
+
+async def process_import_entry_upload(
+    contents: bytes,
+    filename: str,
+    content_type: str,
+    canvas_id: str,
+    user_id: str,
+) -> ImportEntryDocument:
+    """Upload a PDF as IMPORT_ENTRY — stored directly in import_entries, not ocr_results."""
+    started_at = time.monotonic()
+    file_size = len(contents)
+
+    async def _write_scan_log(
+        status: str,
+        total_pages: int | None = None,
+        error_message: str | None = None,
+    ) -> None:
+        elapsed_ms = int((time.monotonic() - started_at) * 1000)
+        price_per_page: float | None = None
+        pages_charged: int | None = None
+        total_cost: float | None = None
+        if status == 'success' and total_pages:
+            price_per_page = await get_price_per_page()
+            pages_charged = total_pages
+            total_cost = compute_cost(pages_charged, price_per_page)
+        log = ScanLog(
+            user_id=user_id,
+            filename=filename,
+            file_size_bytes=file_size,
+            content_type=content_type,
+            canvas_id=canvas_id,
+            total_pages=total_pages,
+            document_type='IMPORT_ENTRY',
+            status=status,
+            error_message=error_message,
+            processing_time_ms=elapsed_ms,
+            price_per_page=price_per_page,
+            pages_charged=pages_charged,
+            total_cost=total_cost,
+        )
+        await scan_log_repo.create(log.model_dump())
+
+    try:
+        existing = await canvas_repo.get_by_id(canvas_id, user_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail='Canvas not found.')
+
+        unique_filename = f'{datetime.utcnow().timestamp()}_{filename}'
+        file_url = await run_in_threadpool(
+            s3_service.upload_file,
+            io.BytesIO(contents),
+            unique_filename,
+            content_type,
+        )
+
+        images = load_images_from_upload(contents, content_type, filename)
+        pipeline_result = await run_surya_ocr_with_forced_type(images, 'IMPORT_ENTRY')
+
+        version = await import_entry_repo.next_version(canvas_id)
+        entry = ImportEntryDocument(
+            canvas_id=canvas_id,
+            user_id=user_id,
+            version=version,
+            filename=filename,
+            url=file_url,
+            type=content_type,
+            total_pages=len(pipeline_result.pages),
+            overall_confidence=pipeline_result.overall_confidence,
+            data=pipeline_result.pages,
+        )
+        await import_entry_repo.create(entry.model_dump())
+        await canvas_repo.touch(canvas_id)
+
+        logger.debug('[import_entry] done in %.2fs', time.monotonic() - started_at)
+        await _write_scan_log(
+            status='success',
+            total_pages=len(pipeline_result.pages),
+        )
+        return entry
 
     except HTTPException:
         raise

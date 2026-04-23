@@ -30,6 +30,10 @@ async def connect_to_mongo():
     )
     # scan_logs: fast listing per user newest-first
     await db.db["scan_logs"].create_index([("user_id", 1), ("created_at", -1)])
+    # import_entries: canvas lookup newest-first + user history + connection to shipping doc
+    await db.db["import_entries"].create_index([("canvas_id", 1), ("created_at", -1)])
+    await db.db["import_entries"].create_index([("user_id", 1), ("created_at", -1)])
+    await db.db["import_entries"].create_index([("ocr_result_id", 1)], sparse=True)
     print("Connected to MongoDB")
 
 async def close_mongo_connection():

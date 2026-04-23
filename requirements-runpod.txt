@@ -1,0 +1,4 @@
+surya-ocr==0.17.1
+Pillow>=10.0.0
+pypdfium2==4.30.0
+runpod
