@@ -1,0 +1,591 @@
+{
+  "info": {
+    "name": "Shipping Bill OCR API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Auth and Customer API collection for the Shipping Bill OCR service."
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.access_token) {",
+                  "  pm.collectionVariables.set('access_token', json.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"mypassword123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Register a new user. Returns user object + access_token. Token is auto-saved to collection variable."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"user\": {\n    \"id\": \"664f1a2b3c4d5e6f7a8b9c0d\",\n    \"email\": \"user@example.com\",\n    \"created_at\": \"2026-04-24T10:00:00\"\n  },\n  \"access_token\": \"<jwt>\",\n  \"token_type\": \"bearer\"\n}"
+            },
+            {
+              "name": "409 Conflict",
+              "status": "Conflict",
+              "code": 409,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Email already registered\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.access_token) {",
+                  "  pm.collectionVariables.set('access_token', json.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"mypassword123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login with email and password. Returns access_token. Token is auto-saved to collection variable."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"access_token\": \"<jwt>\",\n  \"token_type\": \"bearer\"\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Incorrect email or password\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login (OAuth2 form — Swagger)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.access_token) {",
+                  "  pm.collectionVariables.set('access_token', json.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "user@example.com", "type": "text" },
+                { "key": "password", "value": "mypassword123", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "token"]
+            },
+            "description": "OAuth2 password flow used by the Swagger UI Authorize button. Note: field is named 'username' (not 'email')."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"access_token\": \"<jwt>\",\n  \"token_type\": \"bearer\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Google Sign-In",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.access_token) {",
+                  "  pm.collectionVariables.set('access_token', json.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_token\": \"<google_id_token_from_client>\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "google"]
+            },
+            "description": "Sign in or register with a Google ID token obtained from the Google Sign-In SDK on the client. Also accepts 'credential' as an alias for 'id_token'. Handles both new and existing users."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"user\": {\n    \"id\": \"664f1a2b3c4d5e6f7a8b9c0d\",\n    \"email\": \"user@gmail.com\",\n    \"created_at\": \"2026-04-24T10:00:00\"\n  },\n  \"access_token\": \"<jwt>\",\n  \"token_type\": \"bearer\"\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Invalid Google token\"\n}"
+            },
+            {
+              "name": "409 Conflict",
+              "status": "Conflict",
+              "code": 409,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Email is already linked to another Google account\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          { "key": "token", "value": "{{access_token}}", "type": "string" }
+        ]
+      },
+      "item": [
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers?page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"],
+              "query": [
+                { "key": "page", "value": "1", "description": "1-based page number" },
+                { "key": "limit", "value": "50", "description": "Items per page (max 100)" },
+                { "key": "priority", "value": "", "description": "Filter: high | medium | low", "disabled": true }
+              ]
+            },
+            "description": "Returns a flat array sorted by created_at desc. No total field — end of list when data.length < limit."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Success\",\n  \"data\": [\n    {\n      \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n      \"name\": \"SYMRISE\",\n      \"priority\": \"high\",\n      \"location\": \"Sathorn\",\n      \"address\": \"123 Sathorn Rd, Bangkok\",\n      \"emails\": [\"contact@symrise.com\"],\n      \"profile_url\": null,\n      \"hs_code_data\": [],\n      \"created_at\": \"2026-04-24T10:00:00\",\n      \"updated_at\": \"2026-04-24T10:00:00\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Customers Grouped by Priority",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/grouped",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "grouped"]
+            },
+            "description": "Returns all customers organized into high, medium, and low buckets. No pagination."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Customers grouped by priority\",\n  \"data\": {\n    \"high\": [ { \"id\": \"...\", \"name\": \"SYMRISE\", \"priority\": \"high\" } ],\n    \"medium\": [],\n    \"low\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Priority Sections",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/priority-sections",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "priority-sections"]
+            },
+            "description": "Static list of priority section display labels. Does not hit the database."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Success\",\n  \"data\": [\n    { \"key\": \"high\",   \"label\": \"High priority\" },\n    { \"key\": \"medium\", \"label\": \"Medium priority\" },\n    { \"key\": \"low\",    \"label\": \"Low priority\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Success\",\n  \"data\": {\n    \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n    \"name\": \"SYMRISE\",\n    \"priority\": \"high\",\n    \"location\": \"Sathorn\",\n    \"address\": \"123 Sathorn Rd\",\n    \"emails\": [\"contact@symrise.com\"],\n    \"profile_url\": null,\n    \"hs_code_data\": [],\n    \"created_at\": \"2026-04-24T10:00:00\",\n    \"updated_at\": \"2026-04-24T10:00:00\"\n  }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Customer not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('customer_id', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SYMRISE\",\n  \"priority\": \"high\",\n  \"location\": \"Sathorn\",\n  \"address\": \"123 Sathorn Rd, Bangkok\",\n  \"emails\": [\"contact@symrise.com\"],\n  \"hs_code_data\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"]
+            },
+            "description": "Create a new customer. The returned customer ID is auto-saved to the customer_id collection variable."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Customer created successfully\",\n  \"data\": {\n    \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n    \"name\": \"SYMRISE\",\n    \"priority\": \"high\",\n    \"location\": \"Sathorn\",\n    \"address\": \"123 Sathorn Rd, Bangkok\",\n    \"emails\": [\"contact@symrise.com\"],\n    \"profile_url\": null,\n    \"hs_code_data\": [],\n    \"created_at\": \"2026-04-24T10:00:00\",\n    \"updated_at\": \"2026-04-24T10:00:00\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SYMRISE THAILAND\",\n  \"priority\": \"medium\",\n  \"location\": \"Silom\",\n  \"address\": \"456 Silom Rd, Bangkok\",\n  \"emails\": [\"new@symrise.com\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}"]
+            },
+            "description": "All fields are optional. Only send fields you want to change. Extra/unknown fields return 422."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Customer updated successfully\",\n  \"data\": { \"id\": \"...\", \"name\": \"SYMRISE THAILAND\", \"priority\": \"medium\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Customer not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Customer",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}"]
+            },
+            "description": "Hard delete. Cannot be undone."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Customer deleted successfully\",\n  \"data\": { \"id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Customer not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Upload Profile Picture",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "JPEG, PNG, or WebP — max 5 MB"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}/profile-pic",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}", "profile-pic"]
+            },
+            "description": "Upload or replace a customer profile picture. Accepted: image/jpeg, image/png, image/webp. Max size: 5 MB."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Profile picture updated successfully\",\n  \"data\": { \"id\": \"...\", \"profile_url\": \"https://r2.example.com/customer-profiles/...\" }\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Only JPEG, PNG, and WebP images are allowed\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "HS Codes",
+          "item": [
+            {
+              "name": "List HS Codes",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/v1/customers/{{customer_id}}/hs-codes?page=1&pageSize=20",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "customers", "{{customer_id}}", "hs-codes"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "pageSize", "value": "20", "description": "Max 100" },
+                    { "key": "search", "value": "", "description": "Search by code or product name", "disabled": true }
+                  ]
+                },
+                "description": "Paginated HS code list. No total field — end of list when data.length < pageSize."
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "header": [{ "key": "Content-Type", "value": "application/json" }],
+                  "body": "{\n  \"success\": true,\n  \"message\": \"Page 1\",\n  \"data\": [\n    {\n      \"product\": \"Fragrance Compound\",\n      \"definition\": \"สารประกอบน้ำหอม\",\n      \"code\": \"3302.10\",\n      \"duty\": \"5%\",\n      \"license\": \"—\",\n      \"remark\": \"\"\n    }\n  ]\n}"
+                }
+              ]
+            },
+            {
+              "name": "Add Single HS Code",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"product\": \"Fragrance Compound\",\n  \"definition\": \"สารประกอบน้ำหอม\",\n  \"code\": \"3302.10\",\n  \"duty\": \"5%\",\n  \"license\": \"—\",\n  \"remark\": \"\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/customers/{{customer_id}}/hs-codes",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "customers", "{{customer_id}}", "hs-codes"]
+                },
+                "description": "Appends a single HS code entry to the customer. Returns the full updated customer object."
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "header": [{ "key": "Content-Type", "value": "application/json" }],
+                  "body": "{\n  \"success\": true,\n  \"message\": \"HS code added successfully\",\n  \"data\": { \"id\": \"...\", \"hs_code_data\": [ { \"product\": \"Fragrance Compound\", \"code\": \"3302.10\" } ] }\n}"
+                }
+              ]
+            },
+            {
+              "name": "Bulk Import HS Codes (Excel)",
+              "request": {
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "",
+                      "description": ".xlsx only. Row 3 must be the header row with columns: product, thai_definition, h_s_code, duty, license, remark"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/customers/{{customer_id}}/hs-codes/upload",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "customers", "{{customer_id}}", "hs-codes", "upload"]
+                },
+                "description": "Replaces ALL existing HS codes with data from the uploaded .xlsx file. Row 3 (0-indexed row 2) must be the header row. Required columns: product, thai_definition, h_s_code, duty, license, remark. Optional: flight."
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "header": [{ "key": "Content-Type", "value": "application/json" }],
+                  "body": "{\n  \"success\": true,\n  \"message\": \"42 HS codes imported successfully\",\n  \"data\": { \"id\": \"...\", \"hs_code_data\": [] }\n}"
+                },
+                {
+                  "name": "400 Bad Request — Wrong file type",
+                  "status": "Bad Request",
+                  "code": 400,
+                  "header": [{ "key": "Content-Type", "value": "application/json" }],
+                  "body": "{\n  \"detail\": \"Only .xlsx files are supported\"\n}"
+                },
+                {
+                  "name": "400 Bad Request — Missing columns",
+                  "status": "Bad Request",
+                  "code": 400,
+                  "header": [{ "key": "Content-Type", "value": "application/json" }],
+                  "body": "{\n  \"detail\": \"Missing required columns: h_s_code, thai_definition\"\n}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

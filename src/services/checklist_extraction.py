@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from src.models.checklists import (
     IATAChecklist,
+    ImportEntryChecklist,
     InvoiceChecklist,
     MAWBCheckList,
     ManifestChecklist,
@@ -24,6 +25,7 @@ PAGE_TYPE_TO_CHECKLIST_MODEL: dict[str, Type[BaseModel]] = {
     'IATA': IATAChecklist,
     'INVOICE': InvoiceChecklist,
     'CARGO_MANIFEST': ManifestChecklist,
+    'IMPORT_ENTRY': ImportEntryChecklist,
 }
 
 

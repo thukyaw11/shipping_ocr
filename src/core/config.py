@@ -51,3 +51,7 @@ class Config:
     DEBUG_GOOGLE_AUTH: bool = os.getenv(
         "DEBUG_GOOGLE_AUTH", "false").lower() == "true"
 
+    # Shared secret for internal service-to-service calls (e.g. checklist extraction).
+    # Set to a non-empty string to enable the /api/v1/internal/* endpoints.
+    SERVICE_API_KEY: str = os.getenv("SERVICE_API_KEY", "")
+

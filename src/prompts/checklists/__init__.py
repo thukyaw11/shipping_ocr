@@ -11,6 +11,7 @@ _KIND_BY_PAGE_TYPE: dict[str, str] = {
     'IATA': 'iata',
     'INVOICE': 'invoice',
     'CARGO_MANIFEST': 'manifest',
+    'IMPORT_ENTRY': 'import_entry',
 }
 
 

@@ -240,12 +240,11 @@ async def run_surya_ocr_with_classification(
     if invoice_page_indices:
         print(
             f'[ocr] classifying {len(invoice_page_indices)} invoice companies...')
-        company_types = await asyncio.gather(*[
-            run_in_threadpool(classifier.classify_invoice_company,
-                              sanitized_page_texts[i], i + 1)
-            for i in invoice_page_indices
-        ])
-        for i, company_type in zip(invoice_page_indices, company_types):
+        for i in invoice_page_indices:
+            company_type = await run_in_threadpool(
+                classifier.classify_invoice_company,
+                sanitized_page_texts[i], i + 1,
+            )
             pages_list[i].sub_page_type = company_type
 
     document_type = _derive_document_type(page_types)

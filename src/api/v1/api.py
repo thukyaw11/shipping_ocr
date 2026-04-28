@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.api.v1.endpoints import ocr, results, auth_jwt, customers, import_entries, scan_logs, settings, chat
+from src.api.v1.endpoints import ocr, results, auth_jwt, customers, import_entries, scan_logs, settings, chat, internal
 
 api_router = APIRouter()
 
@@ -11,3 +11,4 @@ api_router.include_router(import_entries.router, prefix="", tags=["Import Entrie
 api_router.include_router(scan_logs.router, prefix="/scan-logs", tags=["Scan Logs"])
 api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
 api_router.include_router(chat.router, prefix="", tags=["Chat"])
+api_router.include_router(internal.router, prefix="", tags=["Internal"])
