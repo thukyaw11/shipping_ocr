@@ -13,4 +13,5 @@ class HawbEntry(BaseModel):
     pcs: int = Field(..., gt=0)
     weight_kg: float = Field(..., gt=0)
     destination: str
+    execution_date: Optional[str] = None
     goods_description: Optional[str] = None

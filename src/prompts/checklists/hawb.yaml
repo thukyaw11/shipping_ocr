@@ -6,4 +6,5 @@ system_prompt: |
   - Pieces (pcs): The total number of packages or pieces in this shipment. Must be a positive integer. Look for labels like "No. of Pieces", "PCS", "Pkgs", or "Quantity".
   - Weight (weight_kg): The gross weight of the shipment in kilograms. Must be a positive number. If the unit is LB or LBS, convert to kg (divide by 2.20462). Look for labels like "Gross Weight", "Weight", "Wt." with a "KG" or "K" unit indicator.
   - Destination (destination): The destination airport or city code for this shipment (e.g. "KUL", "SIN", "BKK"). Look for labels like "Destination", "To", or "Airport of Destination".
+  - Execution Date (execution_date): The date the HAWB was issued or executed. Format as YYYY-MM-DD. Look for labels like "Date", "Issue Date", "Date of Issue", "Execution Date". Return null if absent.
   - Goods Description (goods_description): A brief description of the cargo contents. Look for labels like "Nature and Quantity of Goods", "Description of Goods", or "Commodity". Merge multi-line descriptions into a single clean string. Use null if absent.
