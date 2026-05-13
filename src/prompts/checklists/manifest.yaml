@@ -4,3 +4,4 @@ system_prompt: |
   For hawb_list: add one object per distinct HAWB row or line in tables; use an empty list if none.
   Each HAWB entry needs hawb_no, pcs, weight_kg, destination; goods_description when shown.
   pcs and weight_kg must be positive numbers; skip or merge ambiguous partial rows rather than guessing zeros.
+  route: Also populate the route field with flight_from and flight_to objects (name + IATA abbr). Derive from the origin/destination fields already extracted — flight_from.abbr = origin, flight_to.abbr = destination. Look for full city/airport names nearby to populate name. Return null if absent.

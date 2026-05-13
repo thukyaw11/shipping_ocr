@@ -1,7 +1,5 @@
-import json
 import os
 import re
-from datetime import datetime
 from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict
@@ -9,9 +7,6 @@ from PIL import Image
 from surya.detection import DetectionPredictor
 from surya.recognition import RecognitionPredictor
 from surya.foundation import FoundationPredictor
-import ollama
-
-from src.utils.spinner import LoadingSpinner
 
 # ── Pydantic models ──────────────────────────────────────────────────────────
 
@@ -177,69 +172,3 @@ def build_layout_text(text_lines, row_tolerance: int = 12) -> str:
     return "\n".join(output_lines)
 
 
-# ── Main pipeline ────────────────────────────────────────────────────────────
-
-def process_file_to_json(file_path: str):
-    os.makedirs("outputs2", exist_ok=True)
-
-    if not os.path.exists(file_path):
-        print(f"ERROR: File not found: {file_path}")
-        return
-
-    # 1. OCR
-    spinner = LoadingSpinner(f"OCR on {os.path.basename(file_path)}")
-    spinner.start()
-    image = Image.open(file_path).convert("RGB")
-    predictions = rec_predictor([image], det_predictor=det_predictor)
-    spinner.stop()
-
-    ocr_text = build_layout_text(predictions[0].text_lines)
-    print("\n--- SURYA OCR TEXT ---")
-    print(ocr_text)
-    print("----------------------\n")
-
-    if not ocr_text.strip():
-        print("WARNING: No text detected.")
-        return
-
-    # 2. Ollama structured extraction
-    # model_name = "qwen3:8b"
-    model_name = "llama3.2-vision"
-    spinner = LoadingSpinner("Ollama extracting structured data")
-    spinner.start()
-    response = ollama.chat(
-        model=model_name,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a specialized logistics data extractor for Air Waybills (AWB). "
-                    "Extract all details accurately into the requested JSON format. "
-                    'If numeric fields contain "AS ARRANGED", use that string instead of a number. '
-                    'For "freight_prepaid", extract all account numbers into a clean array of strings. '
-                    "On an AWB form the Currency field (e.g. THB, SGD, USD) appears on the same row "
-                    "as or immediately below the routing (To/By Carrier) section — extract it into "
-                    "declaration.currency as a 3-letter ISO code."
-                ),
-            },
-            {
-                "role": "user",
-                "content": f"Extract all detailed logistics data from this OCR text:\n\n{ocr_text}",
-            },
-        ],
-        format=ExtractedInfo.model_json_schema(),
-    )
-    spinner.stop()
-
-    # 3. Save JSON
-    json_content = json.loads(response.message.content)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_name = os.path.basename(file_path).rsplit(".", 1)[0]
-    safe_model = model_name.replace(":", "-")
-    output_path = os.path.join("outputs2", f"{base_name}_{safe_model}_{timestamp}.json")
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(json_content, f, indent=4, ensure_ascii=False)
-
-    print(f"DONE: saved → {output_path}")
-    return json_content

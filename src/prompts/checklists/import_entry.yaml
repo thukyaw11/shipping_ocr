@@ -11,7 +11,7 @@ system_prompt: |
   - Port of Entry (port_of_entry): Airport or port through which goods entered. Look for "Port of Entry", "Airport of Arrival", "Point of Entry".
   - Gross Weight (gross_weight): Total gross weight of all packages in kilograms. Look for labels like "Gross Weight", "Total Weight", "Net Weight (KG)", "N.W.", "G.W.". If the unit is LB or LBS, convert to kg (divide by 2.20462). Return as a numeric value.
   - AWB Number (awb_number): Master or house air waybill number associated with this entry. Formatted as XXX-XXXXXXXX or similar. Look for "AWB", "MAWB", "HAWB".
-  - Invoice Number (invoice_number): Commercial invoice number(s) referenced in the entry. Return the primary invoice number.
+  - Invoice Numbers (invoice_numbers): All commercial invoice numbers referenced in the entry. Return as a list of strings; return [] if none found.
   - Invoice Date (invoice_date): Date of the commercial invoice. Format as YYYY-MM-DD if possible.
   - Total CIF Value (total_cif_value): Total Cost, Insurance, and Freight value of the shipment. Return as a numeric value.
   - Currency (currency): ISO 3-letter currency code (e.g. "USD", "THB", "SGD"). Extract from the value fields.
